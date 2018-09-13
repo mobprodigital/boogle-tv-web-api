@@ -1,9 +1,7 @@
 <?php
 include "../includes/config.php";
-
 wh_log("Request Parameters ".str_replace("\n"," ", print_r($_REQUEST, true)));
 $response = array();
-
 if($_SERVER["REQUEST_METHOD"] == "POST")
 {
 	$req_data = json_decode(file_get_contents("php://input"), true);
@@ -17,7 +15,6 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 		$videoList = "SELECT * FROM `videos` where status =1 order by `insertion_time` desc limit $start,$count";
 		wh_log("Query Executed : ".$videoList);
 		$videoList_rs = @mysql_query($videoList);
-
 		wh_log("Rows Found for video -- ".mysql_num_rows($videoList_rs));
 		if(mysql_num_rows($videoList_rs) > 0)
 		{
@@ -100,9 +97,6 @@ else
 	header("HTTP/1.0 404 Not Found");
 	die;
 }
-
 wh_log("Response : ".str_replace("\n"," ", print_r($response, true)));
 echo json_encode($response,JSON_NUMERIC_CHECK);
 ?>
-
-
