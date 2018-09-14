@@ -72,17 +72,6 @@ function validate_domain($domain)
 }
 /* Ends */
 
-/* Sort an array by like count in descending order */
-function sortByLike($a, $b)
-{
-    $a = $a['likesCount'];
-    $b = $b['likesCount'];
-
-    if ($a == $b) return 0;
-    return ($a > $b) ? -1 : 1;
-}
-
-/* Ends */
 /* Sort an array by Date in descending order */
 function sortByRecent($a, $b)
 {

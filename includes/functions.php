@@ -64,5 +64,56 @@ function videoArray($row)
     return $video_temp;
 } 
 /**************************************** Ends **********************************************************/
+
+
+
+
+
+/************************************ Function For Most Liked Videos **************************/
+function getAllMostLikedVideosArray($start,$count)
+{
+	$videoList = "SELECT * FROM `videos` where status =1 order by `like` desc limit $start,$count";
+	wh_log("Query Executed : ".$videoList);
+	$videoList_rs = @mysql_query($videoList);
+
+	wh_log("Rows Found for video -- ".mysql_num_rows($videoList_rs));
+	if(mysql_num_rows($videoList_rs) > 0)
+	{
+		while($row  = mysql_fetch_assoc($videoList_rs))
+		{  
+			$video_array[] = videoArray($row);
+		}
+		
+	}
+	wh_log("Liked Video Array : ".str_replace("\n"," ", print_r($video_array, true)));
+	return $video_array;
+}
+function getMostLikedVideosByCategoryID($values,$start,$count)
+{
+	foreach ($values as $value)
+	{
+		$videoList = "select * from videos where find_in_set($value,`cat_id`) and status =1 ORDER BY `like` desc limit $start,$count";
+		wh_log("Query Executed : ".$videoList);
+		$videoList_rs = mysql_query($videoList);
+		wh_log("Rows Found for video -- ".mysql_num_rows($videoList_rs));
+		if(mysql_num_rows($videoList_rs) > 0)
+		{
+			while($row  = mysql_fetch_assoc($videoList_rs))
+			{ 
+				$video_array[] = videoArray($row);
+			}
+		} 
+	}
+    return $video_array;
+} 
+function sortByLike($a, $b)
+{
+    $a = $a['likesCount'];
+    $b = $b['likesCount'];
+
+    if ($a == $b) return 0;
+    return ($a > $b) ? -1 : 1;
+}
+/*********************************  Most Liked Videos Functions Ends ***********************************/
  
 ?>
