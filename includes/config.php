@@ -83,19 +83,6 @@ function sortByLike($a, $b)
 }
 
 /* Ends */
-
-/* Sort an array by view count in descending order */
-function sortByView($a, $b)
-{
-    $a = $a['viewsCount'];
-    $b = $b['viewsCount'];
-
-    if ($a == $b) return 0;
-    return ($a > $b) ? -1 : 1;
-}
-
-/* Ends */
-
 /* Sort an array by Date in descending order */
 function sortByRecent($a, $b)
 {
