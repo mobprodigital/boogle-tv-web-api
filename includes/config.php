@@ -72,16 +72,5 @@ function validate_domain($domain)
 }
 /* Ends */
 
-/* Sort an array by Date in descending order */
-function sortByRecent($a, $b)
-{
-    $a = $a['createDate'];
-    $b = $b['createDate'];
-
-    if ($a == $b) return 0;
-    return ($a > $b) ? -1 : 1;
-}
-
-/* Ends */
 
 ?>

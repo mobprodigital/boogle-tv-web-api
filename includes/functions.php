@@ -116,4 +116,54 @@ function sortByLike($a, $b)
 }
 /*********************************  Most Liked Videos Functions Ends ***********************************/
  
+ 
+ 
+
+/************************************ Function For Most Recent/Latest Videos **************************/
+function getAllLatestVideos($start,$count)
+{
+	$videoList = "SELECT * FROM `videos` where status =1 order by `insertion_time` desc limit $start,$count";
+	wh_log("Query Executed : ".$videoList);
+	$videoList_rs = @mysql_query($videoList);
+
+	wh_log("Rows Found for video -- ".mysql_num_rows($videoList_rs));
+	if(mysql_num_rows($videoList_rs) > 0)
+	{
+		while($row  = mysql_fetch_assoc($videoList_rs))
+		{  
+			$video_array[] = videoArray($row);
+		}
+		
+	}
+	wh_log("All Recent/Latest Video Array : ".str_replace("\n"," ", print_r($video_array, true)));
+	return $video_array;
+}
+function getMostLatestVideosByCategoryID($values,$start,$count)
+{
+	foreach ($values as $value)
+	{
+		$videoList = "select * from videos where find_in_set($value,`cat_id`) and status =1 ORDER BY `insertion_time` desc limit $start,$count";
+		wh_log("Query Executed : ".$videoList);
+		$videoList_rs = mysql_query($videoList);
+		wh_log("Rows Found for video -- ".mysql_num_rows($videoList_rs));
+		if(mysql_num_rows($videoList_rs) > 0)
+		{
+			while($row  = mysql_fetch_assoc($videoList_rs))
+			{ 
+				$video_array[] = videoArray($row);
+			}
+		} 
+	}
+	wh_log("Categorywise Recent/Latest Video Array : ".str_replace("\n"," ", print_r($video_array, true)));
+    return $video_array;
+} 
+function sortByRecent($a, $b)
+{
+    $a = $a['createDate'];
+    $b = $b['createDate'];
+
+    if ($a == $b) return 0;
+    return ($a > $b) ? -1 : 1;
+}
+/*********************************  Ends Most Recent/Latest Videos Functions  ***********************************/
 ?>
