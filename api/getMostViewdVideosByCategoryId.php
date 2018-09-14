@@ -35,7 +35,6 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 			$response['data'] = $data;
 		}
 	}
-	
 	usort($data, 'sortByView');
 	wh_log("Sorted Final Video Array : ".str_replace("\n"," ", print_r($data, true)));
 	if(!empty($data))
