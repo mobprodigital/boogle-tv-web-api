@@ -166,4 +166,27 @@ function sortByRecent($a, $b)
     return ($a > $b) ? -1 : 1;
 }
 /*********************************  Ends Most Recent/Latest Videos Functions  ***********************************/
+
+/*************************************** Function - Video By Category Id ****************************************/
+function getVideosByCategoryID($values,$start,$count)
+{
+	foreach ($values as $value)
+	{
+		$getvideoList = "select * from videos where find_in_set($value,`cat_id`) ORDER BY insertion_time desc limit $start,$count";
+		wh_log("getvideoList Query Executed : ".$getvideoList);
+		$getvideoList_rs = @mysql_query($getvideoList);
+		if(mysql_num_rows($getvideoList_rs) > 0)
+		{
+			wh_log("Rows Found for category -- ".mysql_num_rows($getvideoList_rs));
+			while($row  = mysql_fetch_assoc($getvideoList_rs))
+			{ 
+				$video_array[] = videoArray($row);
+			}
+		}
+	}
+	wh_log("Videos By Category Id : ".str_replace("\n"," ", print_r($video_array, true)));
+	return $video_array;
+}
+
+/******************************************** Endssss ***********************************************************/
 ?>
