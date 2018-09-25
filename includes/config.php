@@ -12,7 +12,7 @@ $link = mysqli_connect("50.62.209.160", "dev_boogletv", "Riccha@123") or print(m
 mysqli_select_db($link,"dev_boogletv") or die(mysqli_error()."\n");
 
 function wh_log($log_msg){
-		$log_filename = "C:/xampp/htdocs/boogletv/logs";
+		//$log_filename = "C:/xampp/htdocs/boogletv/logs";
         $log_filename = "logs";
         if (!file_exists($log_filename))
         {
