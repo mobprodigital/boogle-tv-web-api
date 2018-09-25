@@ -1,39 +1,56 @@
 <?php
 include "../includes/config.php";
-wh_log("Request Parameters ".str_replace("\n"," ", print_r($_REQUEST, true)));
 
-$video_id = isset($_POST['video_id']) ? trim($_POST['video_id']) :'';
-$response = array();
-
-if(empty($video_id) || $video_id == null)
+if($_SERVER["REQUEST_METHOD"] == "POST")
 {
-$response['status']=false;
-$response['message']="Kindly Provide Video Id.";
-}
-elseif(!is_numeric($video_id))
-{
-$response['status']=false;
-$response['message']="Please provide valid video id";
-}
-else
-{
-	$updateList = "update `videos` set `like` = `like`+1 where id = $video_id";
-    wh_log("Query Executed : ".$updateList);
-	$updateList_rs = @mysql_query($updateList);
-	if($updateList_rs)
+	$req_data = json_decode(file_get_contents("php://input"), true);
+	wh_log("Json In Request : ".str_replace("\n"," ", print_r($req_data, true)));
+	
+	$video_id = mysqli_real_escape_string($link,isset($req_data['id'])) ? mysqli_real_escape_string($link,trim($req_data['id'])) :'';
+	$response = array();
+	
+	if(empty($video_id) || $video_id == null)
 	{
-		$response['status']=true;
-	    $response['message']="Like Count Increased.";
+	$response['status']=false;
+	$response['message']="Id is missing.";
+	}
+	elseif(!is_numeric($video_id))
+	{
+	$response['status']=false;
+	$response['message']="Id should be numeric.";
 	}
 	else
 	{
-		$response['status']=false;
-	    $response['message']= "Some error occured.";
-	}	
-  
+		$updateList = "update `videos` set `like` = `like`+1 where id = ?";
+		if($stmt = mysqli_prepare($link, $updateList))
+		{
+			$vid = $video_id;
+			mysqli_stmt_bind_param($stmt,'i', $vid);
+			$status = mysqli_stmt_execute($stmt);
+			if($status === true)
+			{
+				$response['status']=true;
+				$response['message']="Like Count Increased.";
+			}
+			else
+			{
+				$response['status']=false;
+				$response['message']= "Some error occured.";
+			}
+			
+		}
+		mysqli_stmt_close($stmt);		
+	  
+	}
+}
+else
+{
+	header("HTTP/1.0 404 Not Found");
+	die;
 }
 wh_log("Response : ".str_replace("\n"," ", print_r($response, true)));
-echo json_encode($response);
+echo json_encode($response,JSON_NUMERIC_CHECK);
+
 ?>
 
 

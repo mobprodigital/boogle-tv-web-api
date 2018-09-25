@@ -2,6 +2,18 @@
 include "../includes/config.php";
 include "../includes/functions.php";
 
+// Validate domain //
+/* $domain = $_SERVER['HTTP_HOST'];
+$check = validate_domain($domain);
+if(!$check)
+{
+	$response['status']=false;
+	$response['message']="Invalid Request";
+	echo json_encode($response);
+	die;
+} */
+// Ends //
+
 $response = array();
 
 if($_SERVER["REQUEST_METHOD"] == "POST")
@@ -9,14 +21,12 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 	$req_data = json_decode(file_get_contents("php://input"), true);
 	wh_log("Json In Request : ".str_replace("\n"," ", print_r($req_data, true)));
 	
-	$start = isset($req_data['start']) ? trim($req_data['start']) :'0';
-	$count = isset($req_data['count']) ? trim($req_data['count']) :'9';
-	wh_log("Start Index: ".$start." | Count Index ".$count);
-	
+	$start = mysqli_real_escape_string($link,isset($req_data['start'])) ? mysqli_real_escape_string($link,trim($req_data['start'])) :'0';
+	$count = mysqli_real_escape_string($link,isset($req_data['count'])) ? mysqli_real_escape_string($link,trim($req_data['count'])) :'9';
 	if(empty($req_data['id'])) 
 	{
-		// Get Array Of Most Liked Videos From All Categories
-		$data = getAllMostLikedVideosArray($start,$count,$link);
+		// Get Videos List From All Categories
+		$data = getAllVideos($start,$count,$link);
 	}
 	else
 	{
@@ -25,19 +35,19 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 		if($value)
 		{
 			// Array have all integers value.
-			// Get Array Of Most Liked Videos By Category Id
-			$data = getMostLikedVideosByCategoryID($req_data['id'],$start,$count,$link);
+			// Get Videos By Category Id
+			$data = getVideosByCategoryID($req_data['id'],$start,$count,$link);
+			wh_log("Final Array : ".str_replace("\n"," ", print_r($data, true)));
+			usort($data, 'sortByRecent');
 		}
 		else
 		{
 			$data = array();
 			$response['status']=false;
-			$response['message']="Id parameter should be numeric.";
+			$response['message']="Id should be numeric.";
 			$response['data'] = $data;
 		}
 	}
-	usort($data, 'sortByLike');
-	wh_log("Sorted Final Video Array : ".str_replace("\n"," ", print_r($data, true)));
 	if(!empty($data))
 	{
 	$response['status']=true;
@@ -46,9 +56,9 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 	} else {
 	$data = array();
 	$response['status']=false;
-	$response['message']="No Videos Found For This Category.";
+	$response['message']="No Videos Found.";
 	$response['data'] = $data;	
-	}
+	} 
 }
 else
 {

@@ -15,7 +15,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 	if(empty($req_data['id'])) 
 	{
 		// Get Array Of Most Viewed Videos From All Categories
-		$data = getAllMostViewedVideosArray($start,$count);
+		$data = getAllMostViewedVideosArray($start,$count,$link);
 	}
 	else
 	{
@@ -25,7 +25,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 		{
 			// Array have all integers value.
 			// Get Array Of Most Viewed Videos By Category Id
-			$data = getMostViewedVideosByCategoryID($req_data['id'],$start,$count);
+			$data = getMostViewedVideosByCategoryID($req_data['id'],$start,$count,$link);
 		}
 		else
 		{
@@ -55,5 +55,5 @@ else
 	die;
 }
 wh_log("Response : ".str_replace("\n"," ", print_r($response, true)));
-echo json_encode($response,JSON_NUMERIC_CHECK);
+echo json_encode($response,JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 ?>

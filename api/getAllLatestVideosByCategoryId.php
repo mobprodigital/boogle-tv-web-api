@@ -13,7 +13,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 	if(empty($req_data['id'])) 
 	{
 		// Get Array Of Most Recent/Latest Videos From All Categories
-		$data = getAllLatestVideos($start,$count);
+		$data = getAllLatestVideos($start,$count,$link);
 	}
 	else
 	{
@@ -23,7 +23,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 		{
 			// Array have all integers value.
 			// Get Array Of Most Recent/Latest Videos By Category Id
-			$data = getMostLatestVideosByCategoryID($req_data['id'],$start,$count);
+			$data = getMostLatestVideosByCategoryID($req_data['id'],$start,$count,$link);
 		}
 		else
 		{
@@ -33,7 +33,9 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 			$response['data'] = $data;
 		}
 	}
-	usort($data, 'sortByRecent');
+	//print_r($data);
+	//die;
+	//usort($data, 'sortByRecent');
 	wh_log("Sorted Final Latestb Video Array : ".str_replace("\n"," ", print_r($data, true)));
 	if(!empty($data))
 	{
@@ -53,5 +55,5 @@ else
 	die;
 }
 wh_log("Response : ".str_replace("\n"," ", print_r($response, true)));
-echo json_encode($response,JSON_NUMERIC_CHECK);
+echo json_encode($response,JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 ?>

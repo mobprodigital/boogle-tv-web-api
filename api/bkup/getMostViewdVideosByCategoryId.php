@@ -3,7 +3,6 @@ include "../includes/config.php";
 include "../includes/functions.php";
 
 $response = array();
-
 if($_SERVER["REQUEST_METHOD"] == "POST")
 {
 	$req_data = json_decode(file_get_contents("php://input"), true);
@@ -15,8 +14,8 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 	
 	if(empty($req_data['id'])) 
 	{
-		// Get Array Of Most Liked Videos From All Categories
-		$data = getAllMostLikedVideosArray($start,$count,$link);
+		// Get Array Of Most Viewed Videos From All Categories
+		$data = getAllMostViewedVideosArray($start,$count);
 	}
 	else
 	{
@@ -25,8 +24,8 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 		if($value)
 		{
 			// Array have all integers value.
-			// Get Array Of Most Liked Videos By Category Id
-			$data = getMostLikedVideosByCategoryID($req_data['id'],$start,$count,$link);
+			// Get Array Of Most Viewed Videos By Category Id
+			$data = getMostViewedVideosByCategoryID($req_data['id'],$start,$count);
 		}
 		else
 		{
@@ -36,7 +35,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 			$response['data'] = $data;
 		}
 	}
-	usort($data, 'sortByLike');
+	usort($data, 'sortByView');
 	wh_log("Sorted Final Video Array : ".str_replace("\n"," ", print_r($data, true)));
 	if(!empty($data))
 	{
@@ -55,9 +54,6 @@ else
 	header("HTTP/1.0 404 Not Found");
 	die;
 }
-
 wh_log("Response : ".str_replace("\n"," ", print_r($response, true)));
-echo json_encode($response,JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+echo json_encode($response,JSON_NUMERIC_CHECK);
 ?>
-
-

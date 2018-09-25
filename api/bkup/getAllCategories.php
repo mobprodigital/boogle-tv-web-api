@@ -9,24 +9,18 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 	//$start = isset($req_data['start']) ? trim($req_data['start']) :'0';
 	//$count = isset($req_data['count']) ? trim($req_data['count']) :'9';
 	
-	$getRootCatList = "SELECT id,cat_name FROM category where status =?";
-	if($stmt = mysqli_prepare($link, $getRootCatList))
+	$getRootCatList = "SELECT * FROM category where status =1";
+	wh_log("Root category Query Executed : ".$getRootCatList);
+	$getRootCatList_rs = @mysql_query($getRootCatList);
+	if(mysql_num_rows($getRootCatList_rs) > 0)
 	{
-		$status = 1;
-		mysqli_stmt_bind_param($stmt,'i',$status);
-		mysqli_stmt_execute($stmt);
-		mysqli_stmt_bind_result($stmt,$id,$catname);
-		mysqli_stmt_store_result($stmt);
-		$count = mysqli_stmt_num_rows($stmt);
-		if($count > 0)
-		{ 
-			while (mysqli_stmt_fetch($stmt)) 
-			{
-			$allcat_data[] = array("id"=>$id,"name"=>$catname);
-			}
+		wh_log("Rows Found for category -- ".mysql_num_rows($getRootCatList_rs));
+		while($row  = mysql_fetch_assoc($getRootCatList_rs))
+		{
+			//if($row['status'] == 0){ $status = false;} else { $status = true; }
+			$allcat_data[] = array("id"=>$row['id'],"name"=>$row['cat_name']);
 		}
 	}
-	
 	if(!empty($allcat_data))
 	{
 	$response['status']=true;

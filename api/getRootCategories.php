@@ -4,20 +4,26 @@ $response = array();
 
 if($_SERVER["REQUEST_METHOD"] == "POST")
 {
-	$getRootCatList = "SELECT * FROM category where parent =0 and status = 1 ORDER BY insertion_time desc";
-	wh_log("Root category Query Executed : ".$getRootCatList);
-	$getRootCatList_rs = @mysql_query($getRootCatList);
-	if(mysql_num_rows($getRootCatList_rs) > 0)
+	$sql = "SELECT id,cat_name FROM category WHERE parent =? and status = ? ORDER BY insertion_time desc";
+	if($stmt = mysqli_prepare($link, $sql))
 	{
-		wh_log("Rows Found for category -- ".mysql_num_rows($getRootCatList_rs));
-		while($row  = mysql_fetch_assoc($getRootCatList_rs))
-		{
-			// Root Categories
-			$rootcat_data[] = array("id"=>$row['id'],"name"=>$row['cat_name']);
+		$parent = 0;
+		$status = 1;
+		mysqli_stmt_bind_param($stmt,'ii', $parent, $status);
+		mysqli_stmt_execute($stmt);
+		mysqli_stmt_bind_result($stmt,$id,$catname);
+		mysqli_stmt_store_result($stmt);
+		$count = mysqli_stmt_num_rows($stmt);
+		if($count > 0)
+		{ 
+			while (mysqli_stmt_fetch($stmt)) 
+			{
+			$rootcat_data[] = array("id"=>$id,"name"=>$catname);
+			}
+	
+			
 		}
 	}
-	//print_r($rootcat_data);
-	//die;
 	if(!empty($rootcat_data))
 	{
 	$response['status']=true;
@@ -32,16 +38,11 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 }
 else
 {
-	/* $response['status']=false;
-	$response['message']="No Page Found."; */
 	header("HTTP/1.0 404 Not Found");
 	die;
 }
 wh_log("Response : ".str_replace("\n"," ", print_r($response, true)));
 echo json_encode($response,true);
-//print_r($response);
-//die;
-
 ?>
 
 

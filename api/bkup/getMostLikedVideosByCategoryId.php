@@ -16,7 +16,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 	if(empty($req_data['id'])) 
 	{
 		// Get Array Of Most Liked Videos From All Categories
-		$data = getAllMostLikedVideosArray($start,$count,$link);
+		$data = getAllMostLikedVideosArray($start,$count);
 	}
 	else
 	{
@@ -26,7 +26,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 		{
 			// Array have all integers value.
 			// Get Array Of Most Liked Videos By Category Id
-			$data = getMostLikedVideosByCategoryID($req_data['id'],$start,$count,$link);
+			$data = getMostLikedVideosByCategoryID($req_data['id'],$start,$count);
 		}
 		else
 		{
@@ -37,7 +37,6 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 		}
 	}
 	usort($data, 'sortByLike');
-	wh_log("Sorted Final Video Array : ".str_replace("\n"," ", print_r($data, true)));
 	if(!empty($data))
 	{
 	$response['status']=true;
@@ -57,7 +56,7 @@ else
 }
 
 wh_log("Response : ".str_replace("\n"," ", print_r($response, true)));
-echo json_encode($response,JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+echo json_encode($response,JSON_NUMERIC_CHECK);
 ?>
 
 
