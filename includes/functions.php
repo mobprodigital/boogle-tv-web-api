@@ -433,10 +433,12 @@ function getVideosBySearch($term,$start,$count,$link)
 			}
 		} 
 	}
+	
 	// Get videos by tag and titles with a search term
-	$id_str = implode(',',$vids);
-	$getvideoListbyTag = "select * from ((select * from videos where title like '%$search_term%') 
-						  UNION (SELECT * FROM videos WHERE `video_tags` LIKE '%$search_term%')) as u where id NOT IN ($id_str) limit $start,$count";
+	if(!empty($vids)) { $id_str = implode(',',$vids); $cond = "where id NOT IN ($id_str) order by id desc"; }
+	else { $cond = "order by id desc"; }
+	
+	$getvideoListbyTag = "select * from ((select * from videos where title like '%$search_term%') UNION (SELECT * FROM videos WHERE `video_tags` LIKE '%$search_term%')) as u $cond limit $start,$count";
 	wh_log("getvideoList Query Executed : ".$getvideoListbyTag);
 	$getvideoListbyTag_rs = mysqli_query($link, $getvideoListbyTag);
 	if(mysqli_num_rows($getvideoListbyTag_rs) > 0)
@@ -446,7 +448,10 @@ function getVideosBySearch($term,$start,$count,$link)
 			$video_array1[] = videoArray($row2);
 		}
 	}
-	return array_slice(array_merge($video_array,$video_array1),$start,$count);
+	//print_r($video_array1);
+	if(!empty($vids)) { return array_slice(array_merge($video_array,$video_array1),$start,$count); }
+	else { return array_slice($video_array1,$start,$count);}
+	
 	
 
 }
