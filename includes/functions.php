@@ -98,7 +98,7 @@ function getMostViewedVideosByCategoryID($values,$start,$count,$link)
 			}
 		} 
 	}
-    return $video_array;
+    return array_slice($video_array,$start,$count);
 } 
 function sortByView($a, $b)
 {
@@ -146,7 +146,7 @@ function getMostLikedVideosByCategoryID($values,$start,$count,$link)
 			}
 		} 
 	}
-    return $video_array;
+    return array_slice($video_array,$start,$count);
 } 
 function sortByLike($a, $b)
 {
@@ -233,7 +233,8 @@ function getMostLatestVideosByCategoryID($values,$start,$count,$link)
 		} 
 	}
 	wh_log("Categorywise Recent/Latest Video Array : ".str_replace("\n"," ", print_r($video_array, true)));
-    return $video_array;
+    //return $video_array;
+	return array_slice($video_array,$start,$count);
 } 
 function sortByRecent($a, $b)
 {
@@ -265,7 +266,7 @@ function getVideosByCategoryID($values,$start,$count,$link)
 		}
 	}
 	wh_log("Videos By Category Id : ".str_replace("\n"," ", print_r($video_array, true)));
-	return $video_array;
+	return array_slice($video_array,$start,$count);
 }
 
 /******************************************** Endssss ***********************************************************/
@@ -402,24 +403,53 @@ function getRelatedVideosByCategoryID($cat_id,$video_id,$link)
 /******************************************** Endssss ***********************************************************/
 
 /*************************************** Function - Video By Search ****************************************/
-/* function getVideosBySearch($term,$start,$count,$link)
+function getVideosBySearch($term,$start,$count,$link)
 {
 	$search_term = trim($term);
-	$getvideoList = "(select * from videos where title like '%$search_term%') 
-						  UNION (SELECT * FROM videos WHERE `video_tags` LIKE '%$search_term%') 
-						  UNION (SELECT * FROM category WHERE `cat_name` LIKE '%$search_term%')";
+	// Get category id of matched search term
+	$getvideoList = "select * from category where cat_name like '%$search_term%' and status =1 limit $start,$count";
 	wh_log("getvideoList Query Executed : ".$getvideoList);
 	$getvideoList_rs = mysqli_query($link, $getvideoList);
 	if(mysqli_num_rows($getvideoList_rs) > 0)
 	{ 
-		while($row  = mysqli_fetch_assoc($getvideoList_rs))
+		while($row = mysqli_fetch_assoc($getvideoList_rs))
 		{ 
-			$video_array[] = videoArray($row);
+			 $ids[] = $row['id'];
 		}
 	}
-	return $video_array;
+	// Get videos of marched category ids with a search term
+	foreach ($ids as $id)
+	{
+		$videoList = "select * from videos where find_in_set($id,`cat_id`) and status =1 limit $start,$count";
+		wh_log("Query Executed : ".$videoList);
+		$videoList_rs = mysqli_query($link,$videoList);
+		wh_log("Rows Found for video -- ".mysqli_num_rows($videoList_rs));
+		if(mysqli_num_rows($videoList_rs) > 0)
+		{
+			while($row1  = mysqli_fetch_assoc($videoList_rs))
+			{ 
+				$vids[] = $row1['id'];
+				$video_array[] = videoArray($row1);
+			}
+		} 
+	}
+	// Get videos by tag and titles with a search term
+	$id_str = implode(',',$vids);
+	$getvideoListbyTag = "select * from ((select * from videos where title like '%$search_term%') 
+						  UNION (SELECT * FROM videos WHERE `video_tags` LIKE '%$search_term%')) as u where id NOT IN ($id_str) limit $start,$count";
+	wh_log("getvideoList Query Executed : ".$getvideoListbyTag);
+	$getvideoListbyTag_rs = mysqli_query($link, $getvideoListbyTag);
+	if(mysqli_num_rows($getvideoListbyTag_rs) > 0)
+	{ 
+		while($row2  = mysqli_fetch_assoc($getvideoListbyTag_rs))
+		{ 
+			$video_array1[] = videoArray($row2);
+		}
+	}
+	return array_slice(array_merge($video_array,$video_array1),$start,$count);
 	
-} */
+
+}
 
 /******************************************** Endssss ***********************************************************/
 ?>

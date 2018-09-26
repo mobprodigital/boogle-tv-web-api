@@ -9,26 +9,19 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 	
 	$start = mysqli_real_escape_string($link,isset($req_data['start'])) ? mysqli_real_escape_string($link,trim($req_data['start'])) :'0';
 	$count = mysqli_real_escape_string($link,isset($req_data['count'])) ? mysqli_real_escape_string($link,trim($req_data['count'])) :'9';
-	$video_tag = mysqli_real_escape_string($link,isset($req_data['tag'])) ? mysqli_real_escape_string($link,trim($req_data['tag'])) :'';
+	$term = mysqli_real_escape_string($link,isset($req_data['tag'])) ? mysqli_real_escape_string($link,trim($req_data['tag'])) :'';
 	$response = array();
 
-	if(empty($video_tag) || $video_tag == null)
+	if(empty($term) || $term == null)
 	{
 	$data = array();
 	$response['status']=false;
 	$response['message']="tag parameter is missing.";
 	$response['data'] = $data;
 	}
-	elseif(!preg_match("/^[a-zA-Z]+$/", $video_tag))
-	{
-	$data = array();
-	$response['status']=false;
-	$response['message']="Allowed only alphabets in Tag Field";
-	$response['data'] = $data;	
-	}
 	else
 	{
-		$data = getVideosByTag(trim($video_tag),$start,$count,$link);
+		$data = getVideosBySearch($term,$start,$count,$link);
 		wh_log("Final Array : ".str_replace("\n"," ", print_r($data, true)));
 		
 		if(!empty($data))
