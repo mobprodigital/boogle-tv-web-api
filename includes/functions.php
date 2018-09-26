@@ -356,7 +356,7 @@ function getVideosByClientID($client_id,$start,$count,$link)
 		while($row  = mysqli_fetch_assoc($getvideoList_rs))
 		{ 
 			$video_array[] = videoArray($row);
-		}
+		} 
 	}
 	wh_log("Videos By Category Id : ".str_replace("\n"," ", print_r($video_array, true)));
 	return $video_array;
@@ -377,9 +377,10 @@ function getRelatedVideosByCategoryID($cat_id,$video_id,$link)
 		 
 		$search_tag = trim($tags['0']);
 		$search_tag1 = trim($tags['1']);
-		$getvideoList1 = "(select * from videos where find_in_set($cat_id,cat_id) limit 0,5) 
-						  UNION (SELECT * FROM videos WHERE `video_tags` LIKE '%$search_tag%' limit 0,5) 
-						  UNION (SELECT * FROM videos WHERE `video_tags` LIKE '%$search_tag1%' limit 0,5)";
+		$getvideoList1 = "(select * from videos where find_in_set($cat_id,cat_id)) 
+						  UNION (SELECT * FROM videos WHERE `video_tags` LIKE '%$search_tag%') 
+						  UNION (SELECT * FROM videos WHERE `video_tags` LIKE '%$search_tag1%') limit 0,10"; 
+		 
 		wh_log("getvideoList Query Executed : ".$getvideoList1);
 		$getvideoList_rs1 = mysqli_query($link, $getvideoList1);
 		if(mysqli_num_rows($getvideoList_rs1) > 0)
@@ -388,12 +389,10 @@ function getRelatedVideosByCategoryID($cat_id,$video_id,$link)
 			{ 
 				$video_array[] = videoArray($row1);
 			}
-			//print_r($video_array);
-			/* if($video_array['5'] == 5)
-			{
-				break;
-			} */
+			//$output = array_slice($video_array, 0, 5); 
+			//print_r($output);
 		}
+		
 		
 	}
 	wh_log("Videos By Category Id : ".str_replace("\n"," ", print_r($video_array, true)));
@@ -403,7 +402,7 @@ function getRelatedVideosByCategoryID($cat_id,$video_id,$link)
 /******************************************** Endssss ***********************************************************/
 
 /*************************************** Function - Video By Search ****************************************/
-function getVideosBySearch($term,$start,$count,$link)
+/* function getVideosBySearch($term,$start,$count,$link)
 {
 	$search_term = trim($term);
 	$getvideoList = "(select * from videos where title like '%$search_term%') 
@@ -420,7 +419,7 @@ function getVideosBySearch($term,$start,$count,$link)
 	}
 	return $video_array;
 	
-}
+} */
 
 /******************************************** Endssss ***********************************************************/
 ?>
