@@ -27,7 +27,8 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 			$vid = $video_id;
 			mysqli_stmt_bind_param($stmt,'i', $vid);
 			$status = mysqli_stmt_execute($stmt);
-			if($status === true)
+			$count = mysqli_stmt_affected_rows($stmt);
+			if($count > 0)
 			{
 				$response['status']=true;
 				$response['message']="Like Count Increased.";
@@ -35,7 +36,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 			else
 			{
 				$response['status']=false;
-				$response['message']= "Some error occured.";
+				$response['message']= "Invalid Video Id";
 			}
 			
 		}

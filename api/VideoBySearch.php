@@ -9,7 +9,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 	
 	$start = mysqli_real_escape_string($link,isset($req_data['start'])) ? mysqli_real_escape_string($link,trim($req_data['start'])) :'0';
 	$count = mysqli_real_escape_string($link,isset($req_data['count'])) ? mysqli_real_escape_string($link,trim($req_data['count'])) :'9';
-	$term = mysqli_real_escape_string($link,isset($req_data['tag'])) ? mysqli_real_escape_string($link,trim($req_data['tag'])) :'';
+	$term = mysqli_real_escape_string($link,isset($req_data['searchTerm'])) ? mysqli_real_escape_string($link,trim($req_data['searchTerm'])) :'';
 	$response = array();
 
 	if(empty($term) || $term == null)
@@ -32,7 +32,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 		} else {
 		$data = array();
 		$response['status']=false;
-		$response['message']="No Videos Found For This Tag";
+		$response['message']="No Videos Found.";
 		$response['data'] = $data;	
 		}	
 	}

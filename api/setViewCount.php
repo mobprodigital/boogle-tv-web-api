@@ -21,13 +21,14 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 	}
 	else
 	{
-		$updateList = "update `videos` set view = view+1 where id = ?";
+		$updateList = "update `videos` set `view` = `view`+1 where id = ?";
 		if($stmt = mysqli_prepare($link, $updateList))
 		{
 			$vid = $video_id;
 			mysqli_stmt_bind_param($stmt,'i', $vid);
 			$status = mysqli_stmt_execute($stmt);
-			if($status === true)
+			$count = mysqli_stmt_affected_rows($stmt);
+			if($count > 0)
 			{
 				$response['status']=true;
 				$response['message']="View Count Increased.";
@@ -35,12 +36,11 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 			else
 			{
 				$response['status']=false;
-				$response['message']= "Some error occured.";
+				$response['message']= "Invalid Video Id";
 			}
 			
 		}
-		mysqli_stmt_close($stmt);		
-	  
+		mysqli_stmt_close($stmt);
 	}
 }
 else
