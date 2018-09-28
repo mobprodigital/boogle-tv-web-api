@@ -33,10 +33,8 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 			$response['data'] = $data;
 		}
 	}
-	//print_r($data);
-	//die;
 	//usort($data, 'sortByRecent');
-	wh_log("Sorted Final Latestb Video Array : ".str_replace("\n"," ", print_r($data, true)));
+	wh_log("Sorted Final Latest Video Array : ".str_replace("\n"," ", print_r($data, true)));
 	if(!empty($data))
 	{
 	$response['status']=true;

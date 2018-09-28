@@ -24,6 +24,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 			
 		}
 	}
+	wh_log("Total Rows ".$count." | Final Array : ".str_replace("\n"," ", print_r($rootcat_data, true)));
 	if(!empty($rootcat_data))
 	{
 	$response['status']=true;

@@ -26,7 +26,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 			}
 		}
 	}
-	
+	wh_log("Total Rows ".$count." | Final Array : ".str_replace("\n"," ", print_r($allcat_data, true)));
 	if(!empty($allcat_data))
 	{
 	$response['status']=true;

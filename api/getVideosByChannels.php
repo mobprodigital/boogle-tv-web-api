@@ -13,7 +13,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 	$count = mysqli_real_escape_string($link,isset($req_data['count'])) ? mysqli_real_escape_string($link,trim($req_data['count'])) :'9';
 	$client_id = mysqli_real_escape_string($link,isset($req_data['id'])) ? mysqli_real_escape_string($link,trim($req_data['id'])) :'';
 	$response = array();
-
+	//print_r($req_data);
 	if(empty($client_id) || $client_id == null)
 	{
 	$video_data = array();

@@ -10,7 +10,6 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 	
 	$start = isset($req_data['start']) ? trim($req_data['start']) :'0';
 	$count = isset($req_data['count']) ? trim($req_data['count']) :'9';
-	wh_log("Start Index: ".$start." | Count Index ".$count);
 	
 	if(empty($req_data['id'])) 
 	{
@@ -35,6 +34,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 			$response['data'] = $data;
 		}
 	}
+	wh_log("Video Array : ".str_replace("\n"," ", print_r($data, true)));
 	usort($data, 'sortByView');
 	wh_log("Sorted Final Video Array : ".str_replace("\n"," ", print_r($data, true)));
 	if(!empty($data))

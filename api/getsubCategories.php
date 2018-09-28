@@ -48,7 +48,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 				}
 			}
 		}
-		
+		wh_log("Total Rows ".$count." | Final Array : ".str_replace("\n"," ", print_r($final_array, true)));
 		if(!empty($final_array))
 		{
 		$response['status']=true;

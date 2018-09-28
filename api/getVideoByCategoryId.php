@@ -39,6 +39,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 			$data = getVideosByCategoryID($req_data['id'],$start,$count,$link);
 			wh_log("Final Array : ".str_replace("\n"," ", print_r($data, true)));
 			usort($data, 'sortByRecent');
+			wh_log("Sorted Final Array : ".str_replace("\n"," ", print_r($data, true)));
 		}
 		else
 		{
@@ -48,6 +49,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 			$response['data'] = $data;
 		}
 	}
+	wh_log("Final Array : ".str_replace("\n"," ", print_r($data, true)));
 	if(!empty($data))
 	{
 	$response['status']=true;

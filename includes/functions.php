@@ -14,7 +14,7 @@ function videoArray($row)
 	"categories"=>$cat_ids,"tags"=>$tags,"videoUrl"=>$url,
 	"viewsCount"=>$row['view'],"likesCount"=>$row['like'],"dislikesCount"=>$row['dislike'],
 	"createDate"=>$insertion_time,"minAgeReq"=>$row['min_age_req'],"thumbnails"=>array("large"=>"images/aa.jpg","medium"=>"","small"=>""));
-	//print_r($video_temp);
+	wh_log("Video Array : ".str_replace("\n"," ", print_r($video_temp, true)));
     return $video_temp;
 }
 /* function videoArray1($row)
@@ -67,10 +67,9 @@ function secondsToMinutes($time,$view_time_in_hour_minutes)
 function getAllMostViewedVideosArray($start,$count,$link)
 {
 	$videoList = "SELECT * FROM `videos` where status =1 order by `view` desc limit $start,$count";
-	wh_log("Query Executed : ".$videoList);
 	$videoList_rs = mysqli_query($link,$videoList);
 
-	wh_log("Rows Found for video -- ".mysqli_num_rows($videoList_rs));
+	wh_log("Query - ".$videoList." | Rows Found for video -- ".mysqli_num_rows($videoList_rs));
 	if(mysqli_num_rows($videoList_rs) > 0)
 	{
 		while($row  = mysqli_fetch_assoc($videoList_rs))
@@ -87,9 +86,8 @@ function getMostViewedVideosByCategoryID($values,$start,$count,$link)
 	foreach ($values as $value)
 	{
 		$videoList = "select * from videos where find_in_set($value,`cat_id`) and status =1 ORDER BY `view` desc limit $start,$count";
-		wh_log("Query Executed : ".$videoList);
 		$videoList_rs = mysqli_query($link,$videoList);
-		wh_log("Rows Found for video -- ".mysqli_num_rows($videoList_rs));
+		wh_log("Query - ".$videoList." | Rows Found for video -- ".mysqli_num_rows($videoList_rs));
 		if(mysqli_num_rows($videoList_rs) > 0)
 		{
 			while($row  = mysqli_fetch_assoc($videoList_rs))
@@ -115,10 +113,9 @@ function sortByView($a, $b)
 function getAllMostLikedVideosArray($start,$count,$link)
 {
 	$videoList = "SELECT * FROM `videos` where status =1 order by `like` desc limit $start,$count";
-	wh_log("Query Executed : ".$videoList);
 	$videoList_rs = mysqli_query($link,$videoList);
 
-	wh_log("Rows Found for video -- ".mysqli_num_rows($videoList_rs));
+	wh_log("Query Executed : ".$videoList." | Rows Found for video -- ".mysqli_num_rows($videoList_rs));
 	if(mysqli_num_rows($videoList_rs) > 0)
 	{
 		while($row  = mysqli_fetch_assoc($videoList_rs))
@@ -135,9 +132,8 @@ function getMostLikedVideosByCategoryID($values,$start,$count,$link)
 	foreach ($values as $value)
 	{
 		$videoList = "select * from videos where find_in_set($value,`cat_id`) and status =1 ORDER BY `like` desc limit $start,$count";
-		wh_log("Query Executed : ".$videoList);
 		$videoList_rs = mysqli_query($link,$videoList);
-		wh_log("Rows Found for video -- ".mysqli_num_rows($videoList_rs));
+		wh_log("Query Executed : ".$videoList." | Rows Found for video -- ".mysqli_num_rows($videoList_rs));
 		if(mysqli_num_rows($videoList_rs) > 0)
 		{
 			while($row  = mysqli_fetch_assoc($videoList_rs))
@@ -193,16 +189,15 @@ function sortByLike($a, $b)
 function getAllLatestVideos($start,$count,$link)
 {
 	$get_total = "SELECT * FROM `videos` where status =1 order by `insertion_time` desc";
-	wh_log("Query Executed : ".$get_total);
 	$get_total_rs = mysqli_query($link,$get_total);
 	$total = mysqli_num_rows($get_total_rs);
 	if($count < $total) { $hasmore = true; } else { $hasmore = false; }
+	wh_log("Query Executed : ".$get_total." | Rows count - ".$total." | hasmore - ".$hasmore);
 	
 	$videoList = "SELECT * FROM `videos` where status =1 order by `insertion_time` desc limit $start,$count";
-	wh_log("Query Executed : ".$videoList);
 	$videoList_rs = mysqli_query($link,$videoList);
 
-	wh_log("Rows Found for video -- ".mysqli_num_rows($videoList_rs));
+	wh_log("Query Executed : ".$videoList." | Rows Found for video -- ".mysqli_num_rows($videoList_rs));
 	if(mysqli_num_rows($videoList_rs) > 0)
 	{
 		while($row  = mysqli_fetch_assoc($videoList_rs))
@@ -221,9 +216,8 @@ function getMostLatestVideosByCategoryID($values,$start,$count,$link)
 	foreach ($values as $value)
 	{
 		$videoList = "select * from videos where find_in_set($value,`cat_id`) and status =1 ORDER BY `insertion_time` desc limit $start,$count";
-		wh_log("Query Executed : ".$videoList);
 		$videoList_rs = mysqli_query($link,$videoList);
-		wh_log("Rows Found for video -- ".mysqli_num_rows($videoList_rs));
+		wh_log("Query Executed : ".$videoList." | Rows Found for video -- ".mysqli_num_rows($videoList_rs));
 		if(mysqli_num_rows($videoList_rs) > 0)
 		{
 			while($row  = mysqli_fetch_assoc($videoList_rs))
@@ -254,11 +248,10 @@ function getVideosByCategoryID($values,$start,$count,$link)
 	foreach ($values as $value)
 	{
 		$getvideoList = "select * from videos where find_in_set($value,`cat_id`) ORDER BY id desc limit $start,$count";
-		wh_log("getvideoList Query Executed : ".$getvideoList);
 		$getvideoList_rs = mysqli_query($link, $getvideoList);
 		if(mysqli_num_rows($getvideoList_rs) > 0)
 		{
-			wh_log("Rows Found for category -- ".mysqli_num_rows($getvideoList_rs));
+			wh_log("Query Executed : ".$getvideoList." | Rows Found for category -- ".mysqli_num_rows($getvideoList_rs));
 			while($row  = mysqli_fetch_assoc($getvideoList_rs))
 			{ 
 				$video_array[] = videoArray($row);
@@ -274,17 +267,16 @@ function getVideosByCategoryID($values,$start,$count,$link)
 /*************************************** Function - Video By Tag ****************************************/
 function getVideosByTag($tag,$start,$count,$link)
 {
-	$get_total = "select * from videos where video_tags like '%$tag%' order by id asc";
-	wh_log("Query Executed : ".$get_total);
-	$get_total_rs = mysqli_query($link,$get_total);
-	$total = mysqli_num_rows($get_total_rs);
+	//$get_total = "select * from videos where video_tags like '%$tag%' order by id asc";
+	//wh_log("Query Executed : ".$get_total);
+	//$get_total_rs = mysqli_query($link,$get_total);
+	//$total = mysqli_num_rows($get_total_rs);
 	//if(($start+$count) < $total) { $hasmore = true; } else { $hasmore = false; }
 	//echo $count; echo $total;
 	$videoList = "select DISTINCT(`video_url`),`id`,`cat_id`,`title`,`video_tags`,`insertion_time`,`description`,`view`,
 	`like`,`dislike` from videos where video_tags like '%$tag%' order by id asc limit $start,$count";
-	wh_log("Query Executed : ".$videoList);
 	$videoList_rs = mysqli_query($link,$videoList);
-	wh_log("Rows Found for video Tag List -- ".mysqli_num_rows($videoList_rs));
+	wh_log("Query Executed : ".$videoList." | Rows Found for video Tag List -- ".mysqli_num_rows($videoList_rs));
 	if(mysqli_num_rows($videoList_rs) > 0)
 	{
 		while($row  = mysqli_fetch_assoc($videoList_rs))
@@ -295,7 +287,8 @@ function getVideosByTag($tag,$start,$count,$link)
 	}
 	wh_log("Videos By Tag Array : ".str_replace("\n"," ", print_r($video_array, true)));
 	//return $response;
-	return $video_array;
+	//return $video_array;
+	return array_slice($video_array,$start,$count);
 	
 }
 
@@ -305,9 +298,8 @@ function getVideosByTag($tag,$start,$count,$link)
 function getVideosByID($video_id,$link)
 {
 	$videoList = "select * from videos where status =1 and id = $video_id";
-	wh_log("Query Executed : ".$videoList);
 	$videoList_rs = mysqli_query($link,$videoList);
-	wh_log("Rows Found for video ID List -- ".mysqli_num_rows($videoList_rs));
+	wh_log("Query Executed : ".$videoList." | Rows Found for video ID List -- ".mysqli_num_rows($videoList_rs));
 	if(mysqli_num_rows($videoList_rs) > 0)
 	{
 		while($row  = mysqli_fetch_assoc($videoList_rs))
@@ -326,10 +318,9 @@ function getVideosByID($video_id,$link)
 function getAllVideos($start,$count,$link)
 {
 	$videoList = "SELECT * FROM `videos` where status =1 ORDER BY insertion_time desc limit $start,$count";
-	wh_log("Query Executed : ".$videoList);
 	$videoList_rs = mysqli_query($link,$videoList);
 
-	wh_log("Rows Found for video -- ".mysqli_num_rows($videoList_rs));
+	wh_log("Query Executed : ".$videoList." | Rows Found for video -- ".mysqli_num_rows($videoList_rs));
 	if(mysqli_num_rows($videoList_rs) > 0)
 	{
 		while($row  = mysqli_fetch_assoc($videoList_rs))
@@ -349,11 +340,10 @@ function getVideosByClientID($client_id,$start,$count,$link)
 {
 	//$video_array = array();
 	$getvideoList = "select * from videos where `client_id` IN ($client_id) ORDER BY id desc limit $start,$count";
-	wh_log("getvideoList Query Executed : ".$getvideoList);
 	$getvideoList_rs = mysqli_query($link, $getvideoList);
+	wh_log("Query Executed : ".$getvideoList." |Rows Found for category -- ".mysqli_num_rows($getvideoList_rs));
 	if(mysqli_num_rows($getvideoList_rs) > 0)
 	{
-		wh_log("Rows Found for category -- ".mysqli_num_rows($getvideoList_rs));
 		while($row  = mysqli_fetch_assoc($getvideoList_rs))
 		{ 
 			$video_array[] = videoArray($row);
@@ -369,8 +359,8 @@ function getVideosByClientID($client_id,$start,$count,$link)
 function getRelatedVideosByCategoryID($cat_id,$video_id,$link)
 {
 	$getvideoList = "select video_tags from videos where id = $video_id";
-	wh_log("getvideoList Query Executed : ".$getvideoList);
 	$getvideoList_rs = mysqli_query($link, $getvideoList);
+	wh_log("getvideoList Query Executed : ".$getvideoList);
 	if($row  = mysqli_fetch_assoc($getvideoList_rs))
 	{
 		$tags = explode(',',$row['video_tags']);
@@ -382,8 +372,9 @@ function getRelatedVideosByCategoryID($cat_id,$video_id,$link)
 						  UNION (SELECT * FROM videos WHERE `video_tags` LIKE '%$search_tag%') 
 						  UNION (SELECT * FROM videos WHERE `video_tags` LIKE '%$search_tag1%') limit 0,10"; 
 		 
-		wh_log("getvideoList Query Executed : ".$getvideoList1);
+		wh_log("search_tag - ".$search_tag." | search_tag1 - ".$search_tag1."getvideoList Query Executed : ".$getvideoList1);
 		$getvideoList_rs1 = mysqli_query($link, $getvideoList1);
+		wh_log("Rows count : ".mysqli_num_rows($getvideoList_rs1));
 		if(mysqli_num_rows($getvideoList_rs1) > 0)
 		{ 
 			while($row1  = mysqli_fetch_assoc($getvideoList_rs1))
@@ -408,8 +399,8 @@ function getVideosBySearch($term,$start,$count,$link)
 	$search_term = trim($term);
 	// Get category id of matched search term
 	$getvideoList = "select * from category where cat_name like '%$search_term%' and status =1 limit $start,$count";
-	wh_log("getvideoList Query Executed : ".$getvideoList);
 	$getvideoList_rs = mysqli_query($link, $getvideoList);
+	wh_log("getvideoList Query Executed : ".$getvideoList." | Rows - ".mysqli_num_rows($getvideoList_rs));
 	if(mysqli_num_rows($getvideoList_rs) > 0)
 	{ 
 		while($row = mysqli_fetch_assoc($getvideoList_rs))
@@ -421,9 +412,8 @@ function getVideosBySearch($term,$start,$count,$link)
 	foreach ($ids as $id)
 	{
 		$videoList = "select * from videos where find_in_set($id,`cat_id`) and status =1 limit $start,$count";
-		wh_log("Query Executed : ".$videoList);
 		$videoList_rs = mysqli_query($link,$videoList);
-		wh_log("Rows Found for video -- ".mysqli_num_rows($videoList_rs));
+		wh_log("Query Executed : ".$videoList." | Rows Found for video -- ".mysqli_num_rows($videoList_rs));
 		if(mysqli_num_rows($videoList_rs) > 0)
 		{
 			while($row1  = mysqli_fetch_assoc($videoList_rs))
@@ -439,8 +429,8 @@ function getVideosBySearch($term,$start,$count,$link)
 	else { $cond = "order by id desc"; }
 	
 	$getvideoListbyTag = "select * from ((select * from videos where title like '%$search_term%') UNION (SELECT * FROM videos WHERE `video_tags` LIKE '%$search_term%')) as u $cond limit $start,$count";
-	wh_log("getvideoList Query Executed : ".$getvideoListbyTag);
 	$getvideoListbyTag_rs = mysqli_query($link, $getvideoListbyTag);
+	wh_log("Query Executed : ".$getvideoListbyTag." | Rows Found for video -- ".mysqli_num_rows($getvideoListbyTag_rs));
 	if(mysqli_num_rows($getvideoListbyTag_rs) > 0)
 	{ 
 		while($row2  = mysqli_fetch_assoc($getvideoListbyTag_rs))

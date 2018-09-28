@@ -36,7 +36,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 		// Ends
 		
 		$video_data = getVideosByID($video_id,$link);
-		wh_log("Final Array : ".str_replace("\n"," ", print_r($data, true)));
+		wh_log("Final Array : ".str_replace("\n"," ", print_r($video_data, true)));
 		
 		if(!empty($video_data))
 		{

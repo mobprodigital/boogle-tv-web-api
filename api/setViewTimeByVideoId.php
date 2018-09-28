@@ -58,6 +58,11 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 				}
 			} 	
 		}
+		else
+		{
+			$response['status']=false;
+			$response['message']="No Data Found.";
+		}
 	}
 }
 else
