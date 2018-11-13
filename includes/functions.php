@@ -1,41 +1,8 @@
 <?php
-/************************** Common Function For Video Array *********************************************/
-function videoArray($row)
-{
-	$video_name = substr($row['video_url'], strripos($row['video_url'], '/'));
-	$url = 'videos'.$video_name;
-	$video_date = explode(' ',$row['insertion_time']);
-	$insertion_time = date("d/m/Y", strtotime($video_date[0]));
-			
-	$cat_ids = comma_separated_to_array($row['cat_id']);
-	$tags = comma_separated_to_array($row['video_tags']);
-	//echo $row['title'];
-	$video_temp = array("id"=>$row['id'],"title"=>stripslashes($row['title']),"description"=>$row['description'],
-	"categories"=>$cat_ids,"tags"=>$tags,"videoUrl"=>$url,
-	"viewsCount"=>$row['view'],"likesCount"=>$row['like'],"dislikesCount"=>$row['dislike'],
-	"createDate"=>$insertion_time,"minAgeReq"=>$row['min_age_req'],"thumbnails"=>array("large"=>"images/aa.jpg","medium"=>"","small"=>""));
-	wh_log("Video Array : ".str_replace("\n"," ", print_r($video_temp, true)));
-    return $video_temp;
-}
-/* function videoArray1($row)
-{
-	$video_name = substr($row['video_url'], strripos($row['video_url'], '/'));
-	$url = 'videos'.$video_name;
-	$video_date = explode(' ',$row['insertion_time']);
-	$insertion_time = date("d/m/Y", strtotime($video_date[0]));
-			
-	$cat_ids = comma_separated_to_array($row['cat_id']);
-	$tags = comma_separated_to_array($row['video_tags']);
-	
-	
-	$video_temp = array("id"=>$row['id'],"title"=>stripslashes($row['title']),"description"=>$row['description'],
-	"categories"=>$cat_ids,"tags"=>$tags,"videoUrl"=>$url,
-	"viewsCount"=>$row['view'],"likesCount"=>$row['like'],"dislikesCount"=>$row['dislike'],
-	"createDate"=>$insertion_time,"minAgeReq"=>$row['min_age_req'],"thumbnails"=>array("large"=>"images/aa.jpg","medium"=>"","small"=>""));
-	//print_r($video_temp);
-    return $video_temp;
-} */ 
+/*************************************** Common Function For Portal And Dashboard ****************************************************************/
+/************************************************************************************************************************************************/
 
+/* Convert comma seperated strings to array*/
 function comma_separated_to_array($string, $separator = ',')
 {
   $vals = explode($separator, $string);
@@ -45,201 +12,96 @@ function comma_separated_to_array($string, $separator = ',')
   return array_diff($vals, array(""));
 }
 
-/* Check array contains integer values or not */
-function check_array_values($array)
+/* Convert array to strings */
+function array_to_comma_separated($array)
 {
-	foreach ($array as $a => $b) {
-    if (!is_int($b)) {
+  $data = implode(",",$array);
+  return $data;
+}
+
+/* Check array contains integer values or not */
+function check_array_values($arr)
+{
+	foreach ($arr as $a => $b) {
+    if (!is_numeric($b)) {
 		return false;
     }
 }
 return true;
 }
+
+/* Convert Seconds To Minutes */
 function secondsToMinutes($time,$view_time_in_hour_minutes)
 {
 	$secs = strtotime($view_time_in_hour_minutes)-strtotime("00:00:00");
 	$res = date("H:i:s",strtotime($time)+$secs);
 	return $res;
 }
-/**************************************** Ends **********************************************************/
 
-/************************************ Function For Most Viewed Videos **************************/
-function getAllMostViewedVideosArray($start,$count,$link)
-{
-	$videoList = "SELECT * FROM `videos` where status =1 order by `view` desc limit $start,$count";
-	$videoList_rs = mysqli_query($link,$videoList);
-
-	wh_log("Query - ".$videoList." | Rows Found for video -- ".mysqli_num_rows($videoList_rs));
-	if(mysqli_num_rows($videoList_rs) > 0)
-	{
-		while($row  = mysqli_fetch_assoc($videoList_rs))
-		{  
-			$video_array[] = videoArray($row);
-		}
-		
-	}
-	wh_log("Viewed Video Array : ".str_replace("\n"," ", print_r($video_array, true)));
-	return $video_array;
-}
-function getMostViewedVideosByCategoryID($values,$start,$count,$link)
-{
-	foreach ($values as $value)
-	{
-		$videoList = "select * from videos where find_in_set($value,`cat_id`) and status =1 ORDER BY `view` desc limit $start,$count";
-		$videoList_rs = mysqli_query($link,$videoList);
-		wh_log("Query - ".$videoList." | Rows Found for video -- ".mysqli_num_rows($videoList_rs));
-		if(mysqli_num_rows($videoList_rs) > 0)
-		{
-			while($row  = mysqli_fetch_assoc($videoList_rs))
-			{ 
-				$video_array[] = videoArray($row);
-			}
-		} 
-	}
-    return array_slice($video_array,$start,$count);
+/* Remove Duplicate Values From Array List*/
+function unique_multidim_array($array, $key) { 
+    $temp_array = array(); 
+    $i = 0; 
+    $key_array = array(); 
+    
+    foreach($array as $val) { 
+        if (!in_array($val[$key], $key_array)) { 
+            $key_array[$i] = $val[$key]; 
+            $temp_array[$i] = $val; 
+        } 
+        $i++; 
+    } 
+    return $temp_array; 
 } 
-function sortByView($a, $b)
-{
-    $a = $a['viewsCount'];
-    $b = $b['viewsCount'];
+/****************************************************** Ends *************************************************************************************/
+/************************************************************************************************************************************************/
 
-    if ($a == $b) return 0;
-    return ($a > $b) ? -1 : 1;
-}
-/*********************************  Most Viewed Videos Functions Ends ***********************************/
-
- 
-/************************************ Function For Most Liked Videos **************************/
-function getAllMostLikedVideosArray($start,$count,$link)
+function videoArray($row,$imageBaseURL,$videoBaseURL,$link,$source)
 {
-	$videoList = "SELECT * FROM `videos` where status =1 order by `like` desc limit $start,$count";
-	$videoList_rs = mysqli_query($link,$videoList);
-
-	wh_log("Query Executed : ".$videoList." | Rows Found for video -- ".mysqli_num_rows($videoList_rs));
-	if(mysqli_num_rows($videoList_rs) > 0)
-	{
-		while($row  = mysqli_fetch_assoc($videoList_rs))
-		{  
-			$video_array[] = videoArray($row);
-		}
-		
-	}
-	wh_log("Liked Video Array : ".str_replace("\n"," ", print_r($video_array, true)));
-	return $video_array;
-}
-function getMostLikedVideosByCategoryID($values,$start,$count,$link)
-{
-	foreach ($values as $value)
-	{
-		$videoList = "select * from videos where find_in_set($value,`cat_id`) and status =1 ORDER BY `like` desc limit $start,$count";
-		$videoList_rs = mysqli_query($link,$videoList);
-		wh_log("Query Executed : ".$videoList." | Rows Found for video -- ".mysqli_num_rows($videoList_rs));
-		if(mysqli_num_rows($videoList_rs) > 0)
+	if(!empty($row['video_url'])) { $videoUrl = $videoBaseURL.'/'.$row['video_url']; }
+	if(!empty($row['cover_image_url'])) { $imageUrl = $imageBaseURL.'/'.$row['cover_image_url']; } else { $imageUrl = $imageBaseURL.'/default.jpg';}
+	
+	$video_date = explode(' ',$row['insertion_time']);
+	$insertion_time = date("d/m/Y", strtotime($video_date[0]));
+			
+	// Convert comma seperated strings to array
+	if(!empty($row['cat_id'])) { $cat_ids = comma_separated_to_array($row['cat_id']); }
+	if(!empty($row['tags'])) { $tags = comma_separated_to_array($row['tags']); } else { $tags = array();}
+	if(!empty($row['country'])) { $country = comma_separated_to_array($row['country']); }
+	if(!empty($row['portal_ids']))
+	{ 
+		$pids = comma_separated_to_array($row['portal_ids']); 
+		// Get Portal Names
+		$portalids = $row['portal_ids'];
+		wh_log("Portal ids - ".$portalids);
+		$get_portals = "select * from portals where portal_id in ($portalids) and status = 1";
+		$get_portals_rs = mysqli_query($link,$get_portals);
+		wh_log("Portal Query - ".$get_portals." | Rows Found for video -- ".mysqli_num_rows($get_portals_rs));
+		if(mysqli_num_rows($get_portals_rs) > 0)
 		{
-			while($row  = mysqli_fetch_assoc($videoList_rs))
-			{ 
-				$video_array[] = videoArray($row);
+			while($portal_row  = mysqli_fetch_assoc($get_portals_rs))
+			{  
+				$portal_array[] = singlePortalArray($portal_row,$link);
+				
 			}
-		} 
-	}
-    return array_slice($video_array,$start,$count);
-} 
-function sortByLike($a, $b)
-{
-    $a = $a['likesCount'];
-    $b = $b['likesCount'];
-
-    if ($a == $b) return 0;
-    return ($a > $b) ? -1 : 1;
-}
-/*********************************  Most Liked Videos Functions Ends ***********************************/
-
-
-
-
-
-/************************************ Function For Most Recent/Latest Videos **************************/
-/* function getAllLatestVideos($start,$count,$link)
-{
-	$get_total = "SELECT * FROM `videos` where status =1 order by `insertion_time` desc";
-	wh_log("Query Executed : ".$get_total);
-	$get_total_rs = mysqli_query($link,$get_total);
-	$total = mysqli_num_rows($get_total_rs);
-	if($count < $total) { $hasmore = true; } else { $hasmore = false; }
-	
-	$videoList = "SELECT * FROM `videos` where status =1 order by `insertion_time` desc limit $start,$count";
-	wh_log("Query Executed : ".$videoList);
-	$videoList_rs = mysqli_query($link,$videoList);
-
-	wh_log("Rows Found for video -- ".mysqli_num_rows($videoList_rs));
-	if(mysqli_num_rows($videoList_rs) > 0)
-	{
-		while($row  = mysqli_fetch_assoc($videoList_rs))
-		{  
-			$video_array[] = videoArray1($row);
+			wh_log("Poratl Array : ".str_replace("\n"," ", print_r($portal_array, true))); 
 		}
-		 
-		$response[] = array("hasMore"=>$hasmore,"videos"=>$video_array);
+		//Ends
 	}
+	// Ends
+	if(empty($portal_array)) { $portal_array = array(); }
 	
-	wh_log("All Recent/Latest Video Array : ".str_replace("\n"," ", print_r($video_array, true)));
-	return $response;
-} */
-
-function getAllLatestVideos($start,$count,$link)
-{
-	$get_total = "SELECT * FROM `videos` where status =1 order by `insertion_time` desc";
-	$get_total_rs = mysqli_query($link,$get_total);
-	$total = mysqli_num_rows($get_total_rs);
-	if($count < $total) { $hasmore = true; } else { $hasmore = false; }
-	wh_log("Query Executed : ".$get_total." | Rows count - ".$total." | hasmore - ".$hasmore);
-	
-	$videoList = "SELECT * FROM `videos` where status =1 order by `insertion_time` desc limit $start,$count";
-	$videoList_rs = mysqli_query($link,$videoList);
-
-	wh_log("Query Executed : ".$videoList." | Rows Found for video -- ".mysqli_num_rows($videoList_rs));
-	if(mysqli_num_rows($videoList_rs) > 0)
+	if($source == 'portal') 
 	{
-		while($row  = mysqli_fetch_assoc($videoList_rs))
-		{  
-			$video_array[] = videoArray($row);
-		}
-		 
-		//$response[] = array("hasMore"=>$hasmore,"videos"=>$video_array);
+		$video_temp_array = array("videoId"=>$row['id'],"categoryId"=>$cat_ids,"clientId"=>$row['client_id'],"portalId"=>$portal_array,"title"=>$row['title'],"videoUrl"=>$videoUrl,"videoTags"=>$tags,"videoDate"=>$insertion_time,"language"=>$row['language'],"description"=>$row['description'],"coverImage"=>array("original"=>$imageUrl,"large"=>"","medium"=>"","small"=>""),"videoLength"=>$row['content_length'],"extension"=>$row['extension'],"videoMime"=>$row['mime'],"minAgeReq"=>$row['min_age_req'],"broadcasterName"=>$row['broadcaster_name'],"type"=>$row['type'],"currentAvailability"=>$row['content_availability'],"platform"=>$row['platform'],"adult"=>$row['adult'],"downloadRights"=>$row['download_rights'],"internationalRights"=>$row['intrernational_rights'],"genere"=>$row['genre'],"director"=>$row['director'],"producer"=>$row['producer'],"writer"=>$row['writer'],"musicDirector"=>$row['music_director'],"productionHouse"=>$row['production_house'],"actor"=>$row['actor'],"singer"=>$row['singer'],"country"=>$country,"viewsCount"=>$row['view'],"likesCount"=>$row['like'],"dislikesCount"=>$row['dislike']);
 	}
-	wh_log("All Recent/Latest Video Array : ".str_replace("\n"," ", print_r($video_array, true)));
-	return $video_array;
-}
-
-function getMostLatestVideosByCategoryID($values,$start,$count,$link)
-{
-	foreach ($values as $value)
+	else
 	{
-		$videoList = "select * from videos where find_in_set($value,`cat_id`) and status =1 ORDER BY `insertion_time` desc limit $start,$count";
-		$videoList_rs = mysqli_query($link,$videoList);
-		wh_log("Query Executed : ".$videoList." | Rows Found for video -- ".mysqli_num_rows($videoList_rs));
-		if(mysqli_num_rows($videoList_rs) > 0)
-		{
-			while($row  = mysqli_fetch_assoc($videoList_rs))
-			{ 
-				$video_array[] = videoArray($row);
-			}
-		} 
+		$video_temp_array = array("videoId"=>$row['id'],"categoryId"=>$cat_ids,"clientId"=>$row['client_id'],"portalId"=>$portal_array,"title"=>$row['title'],"videoUrl"=>$videoUrl,"videoTags"=>$tags,"videoDate"=>$insertion_time,"language"=>$row['language'],"description"=>$row['description'],"coverImage"=>array("original"=>$imageUrl,"large"=>"","medium"=>"","small"=>""),"videoLength"=>$row['content_length'],"extension"=>$row['extension'],"videoMime"=>$row['mime'],"minAgeReq"=>$row['min_age_req'],"broadcasterName"=>$row['broadcaster_name'],"type"=>$row['type'],"currentAvailability"=>$row['content_availability'],"platform"=>$row['platform'],"adult"=>$row['adult'],"downloadRights"=>$row['download_rights'],"internationalRights"=>$row['intrernational_rights'],"genere"=>$row['genre'],"director"=>$row['director'],"producer"=>$row['producer'],"writer"=>$row['writer'],"musicDirector"=>$row['music_director'],"productionHouse"=>$row['production_house'],"actor"=>$row['actor'],"singer"=>$row['singer'],"country"=>$country);
 	}
-	wh_log("Categorywise Recent/Latest Video Array : ".str_replace("\n"," ", print_r($video_array, true)));
-    //return $video_array;
-	return array_slice($video_array,$start,$count);
+	wh_log("Video Content Array : ".str_replace("\n"," ", print_r($video_temp_array, true)));
+    return $video_temp_array;
 } 
-function sortByRecent($a, $b)
-{
-    $a = $a['createDate'];
-    $b = $b['createDate'];
-
-    if ($a == $b) return 0;
-    return ($a > $b) ? -1 : 1;
-}
-
-/*********************************  Ends Most Recent/Latest Videos Functions  ***********************************/
 
 /*************************************** Function - Video By Category Id ****************************************/
 function getVideosByCategoryID($values,$start,$count,$link)
@@ -287,8 +149,8 @@ function getVideosByTag($tag,$start,$count,$link)
 	}
 	wh_log("Videos By Tag Array : ".str_replace("\n"," ", print_r($video_array, true)));
 	//return $response;
-	//return $video_array;
-	return array_slice($video_array,$start,$count);
+	return $video_array;
+	//return array_slice($video_array,$start,$count);
 	
 }
 
@@ -314,26 +176,6 @@ function getVideosByID($video_id,$link)
 
 /******************************************** Endssss ***********************************************************/
 
-/*************************************** Function - Get All Videos ****************************************/
-function getAllVideos($start,$count,$link)
-{
-	$videoList = "SELECT * FROM `videos` where status =1 ORDER BY insertion_time desc limit $start,$count";
-	$videoList_rs = mysqli_query($link,$videoList);
-
-	wh_log("Query Executed : ".$videoList." | Rows Found for video -- ".mysqli_num_rows($videoList_rs));
-	if(mysqli_num_rows($videoList_rs) > 0)
-	{
-		while($row  = mysqli_fetch_assoc($videoList_rs))
-		{  
-			$video_array[] = videoArray($row);
-		}
-		
-	}
-	wh_log("All Video Array : ".str_replace("\n"," ", print_r($video_array, true)));
-	return $video_array;
-}
-
-/******************************************** Endssss ***********************************************************/
 
 /*************************************** Function - Video By Client Id ****************************************/
 function getVideosByClientID($client_id,$start,$count,$link)
@@ -447,4 +289,597 @@ function getVideosBySearch($term,$start,$count,$link)
 }
 
 /******************************************** Endssss ***********************************************************/
+
+
+
+/******************************************************** Panel functions ************************************************************************/
+/******************************************************** Panel functions ************************************************************************/
+/******************************************************** Panel functions ************************************************************************/
+/******************************************************** Panel functions ************************************************************************/
+function encodeId($id)
+{
+	$str1 = decbin($id);
+	//$str1 = base64_encode($id);
+	return $str1;
+}
+function decodeId($id)
+{
+	$str1 = bindec($id);
+	//$str1 = base64_decode($id);
+	return $str1;
+}
+
+/************************** Common Function For Client Array *********************************************/
+function singleClientArray($row)
+{
+	// Make Poratlids in array format
+	$pids = explode(",",$row['portal_ids']);
+	// Ends
+	$client_temp= array("clientId"=>$row['client_id'],"clientName"=>$row['name'],"email"=>$row['email'],"phone"=>$row['mobile'],"domain"=>$row['url'],"address"=>$row['address'],"skypeId"=>$row['skype_id'],"assignedPortals"=>$pids,"billingCycle"=>$row['billing_cycle'],"agreementTenure"=>$row['agreement_tenure']);
+	wh_log("Client Array : ".str_replace("\n"," ", print_r($client_temp, true)));
+    return $client_temp;
+}
+function getSingleClientData($id,$link)
+{
+	$clientList = "SELECT * FROM `clients` where client_id ='$id' and status =1";
+	$clientList_rs = mysqli_query($link,$clientList);
+
+	wh_log("Client Query - ".$clientList." | Rows Found for video -- ".mysqli_num_rows($clientList_rs));
+	if(mysqli_num_rows($clientList_rs) > 0)
+	{
+		while($row  = mysqli_fetch_assoc($clientList_rs))
+		{  
+			$client_array = singleClientArray($row);
+		}
+		
+	}
+	wh_log("Client Array : ".str_replace("\n"," ", print_r($client_array, true)));
+	return $client_array;
+}
+/****************************** Ends **********************************************************************/
+
+/************************** Common Function For User Array *********************************************/
+function singleUserArray($row,$link)
+{
+	// Fetching Roles Details
+	if(!empty($row['role']))
+	{ 
+		// Get Role Names
+		$roleid = $row['role'];
+		wh_log("Role ids - ".$roleid);
+		$get_roles = "select * from roles where id = $roleid and status = 1";
+		$get_roles_rs = mysqli_query($link,$get_roles);
+		wh_log("Roles Query - ".$get_roles." | Rows Found for video -- ".mysqli_num_rows($get_roles_rs));
+		if(mysqli_num_rows($get_roles_rs) > 0)
+		{  
+			if($role_row  = mysqli_fetch_assoc($get_roles_rs))
+			{  
+				$role_array = singleRoleArray($role_row,$link);
+			}
+			wh_log("Role Array : ".str_replace("\n"," ", print_r($role_array, true))); 
+		}
+	}
+	if(empty($role_array)) { $role_array = array(); } 
+	//Ends
+	
+	//Fetching Portal Details
+	// Make Poratlids in array format
+	if(empty($row['portal_ids'])) { $pids = array();}
+	else { $pids = comma_separated_to_array($row['portal_ids']); }
+	//Ends
+	
+	// Fetch Client Details
+	$array = getSingleClientData($pids,$link);
+	//Ends
+	
+	// Fetch Portal Details
+	$parray = getPortalArrayByIds($row['portal_ids'],$link);
+	//print_r($parray);
+	//Ends
+	
+	$user_temp = array("userId"=>$row['uid'],"firstName"=>$row['first_name'],"lastName"=>$row['last_name'],"email"=>$row['email'],"phone"=>$row['mobile'],"role"=>$role_array,"clientId"=>$row['client_id'],"assignedPortals"=>$parray,"clientInfo"=>$array);
+	wh_log("User Array : ".str_replace("\n"," ", print_r($user_temp, true)));
+    return $user_temp;
+}
+function getSingleUserData($id,$link)
+{
+	$userList = "SELECT * FROM `users` where uid =$id and status =1";
+	$userList_rs = mysqli_query($link,$userList);
+
+	wh_log("User Query - ".$userList." | Rows Found for video -- ".mysqli_num_rows($userList_rs));
+	if(mysqli_num_rows($userList_rs) > 0)
+	{
+		while($row  = mysqli_fetch_assoc($userList_rs))
+		{  
+			$user_array = singleUserArray($row,$link);
+		}
+	}
+	wh_log("User Array : ".str_replace("\n"," ", print_r($user_array, true)));
+	return $user_array;
+}
+/****************************** Ends **********************************************************************/
+
+/******************************** Portal Details **********************************************************/
+function singleContentTypeArray($row,$link)
+{
+	$content_temp= array("contentTypeId"=>$row['id'],"contentTypeName"=>$row['content_name']);
+	wh_log("content_temp Array : ".str_replace("\n"," ", print_r($content_temp, true)));
+    return $content_temp;
+}
+function getPortalArrayByIds($portal_ids,$link)
+{ 
+	$query1 = "SELECT * FROM portals WHERE portal_id IN ($portal_ids) and status = '1'";
+	wh_log("Select Poratl Query - ".$query1);
+	$query_rs1 = mysqli_query($link,$query1);
+	if($query_rs1)
+	{
+		if(mysqli_num_rows($query_rs1) > 0)
+		{
+			while($row1  = mysqli_fetch_assoc($query_rs1))
+			{ 
+				// Get Porat Details
+				$portal_array[] = singlePortalArray($row1,$link);
+				//Ends
+			}
+			wh_log("Portal Array : ".str_replace("\n"," ", print_r($portal_array, true)));
+			return $portal_array;
+		}
+	}
+}
+function singlePortalArray($row,$link)
+{
+	// Fetch content type details
+	if(!empty($row['content_type']))
+	{ 
+		$content_type_ids = $row['content_type'];
+		wh_log("Content Type ids - ".$content_type_ids);
+		$get_content = "select * from content_type where id in ($content_type_ids) and status = 1";
+		$get_content_rs = mysqli_query($link,$get_content);
+		wh_log("Content type Query - ".$get_content." | Rows Found for video -- ".mysqli_num_rows($get_content_rs));
+		if(mysqli_num_rows($get_content_rs) > 0)
+		{ 
+			while($con_row  = mysqli_fetch_assoc($get_content_rs))
+			{ 
+				$con_array[] = singleContentTypeArray($con_row,$link);
+			}
+			wh_log("Contemnt Array : ".str_replace("\n"," ", print_r($con_array, true))); 
+		}
+		//Ends
+	}
+	if(empty($con_array)) { $con_array = array(); } 
+	//Ends
+	//$portalKey = encodeId($row['portal_id']);
+	$portal_temp = array("portalId"=>$row['portal_id'],"portalName"=>$row['name'],"url"=>$row['url'],"email"=>$row['email'],"agreementTenure"=>$row['agreement_tenure'],"contentType"=>$con_array);
+	wh_log("Portal Temp Array : ".str_replace("\n"," ", print_r($portal_temp, true)));
+    return $portal_temp;
+}
+
+function getPortalDataById($id,$link)
+{
+	$portalList = "SELECT * FROM `portals` where portal_id = '$id' and status =1";
+	$portalList_rs = mysqli_query($link,$portalList);
+
+	wh_log("Portal Query - ".$portalList." | Rows Found for video -- ".mysqli_num_rows($portalList_rs));
+	if(mysqli_num_rows($portalList_rs) > 0)
+	{
+		while($row  = mysqli_fetch_assoc($portalList_rs))
+		{  
+			$portal_array = singlePortalArray($row,$link);
+		}
+		
+	}
+	wh_log("Portal Array : ".str_replace("\n"," ", print_r($portal_array, true)));
+	return $portal_array;
+}
+
+/********************************** Ends ***************************************************************************/
+
+
+/******************************** Role Details **********************************************************/
+ function singleRoleArray($row,$link)
+{
+	$role_temp = array("roleId"=>$row['id'],"roleName"=>$row['name']);
+	wh_log("Role Temp Array : ".str_replace("\n"," ", print_r($role_temp, true)));
+    return $role_temp;
+}
+/********************************** Ends ***************************************************************************/
+
+
+/************************************ Category Details **********************************************************/
+function singleCategoryArray($row,$link)
+{
+	$cat_temp = array("categoryId"=>$row['id'],"categoryName"=>$row['cat_name']);
+	wh_log("Category Temp Array : ".str_replace("\n"," ", print_r($cat_temp, true)));
+	//print_r($cat_temp);
+    return $cat_temp;
+}
+function getCategoryData($id,$link)
+{
+	$catList = "SELECT * FROM `category` where id = '$id' and status =1";
+	$catList_rs = mysqli_query($link,$catList);
+
+	wh_log("Category Query - ".$catList." | Rows Found for video -- ".mysqli_num_rows($catList_rs));
+	if(mysqli_num_rows($catList_rs) > 0)
+	{
+		while($row  = mysqli_fetch_assoc($catList_rs))
+		{  
+			$cat_array = singleCategoryArray($row,$link);
+		}
+		
+	}
+	wh_log("Category Array : ".str_replace("\n"," ", print_r($cat_array, true)));
+	return $cat_array;
+}
+
+/********************************** Ends ***************************************************************************/
+
+
+
+
+
+
+
+
+
+/*************************************** Portal Fiunctions ***************************************************************************************/
+/*************************************** Portal Fiunctions ******************************************************************************************/
+/*************************************** Portal Fiunctions ******************************************************************************************/
+/*************************************** Portal Fiunctions ******************************************************************************************/
+/*************************************** Portal Fiunctions ******************************************************************************************/
+
+/************************************ Text Details Section **********************************************************/
+function textArray($row,$imageBaseURL,$link)
+{
+	if(!empty($row['cover_image_url'])) { $imageUrl = $imageBaseURL.'/'.$row['cover_image_url']; } else { $imageUrl = $imageBaseURL.'/default.jpg';}
+	
+	$news_date = explode(' ',$row['insertion_time']);
+	$insertion_time = date("d/m/Y", strtotime($news_date[0]));
+	
+	$post_time = explode(' ',$row['post_time']);
+	$news_post_time = date("Y/m/d", strtotime($post_time[0]));
+			
+	// Convert comma seperated strings to array
+	if(!empty($row['cat_id'])) { $cat_ids = comma_separated_to_array($row['cat_id']); } else { $cat_ids = array();}
+	if(!empty($row['tags'])) { $tags = comma_separated_to_array($row['tags']); } else { $tags = array();}
+	if(!empty($row['country'])) { $country = comma_separated_to_array($row['country']); } else { $country = array();}
+	if(!empty($row['portal_ids']))
+	{ 
+		$pids = comma_separated_to_array($row['portal_ids']); 
+		// Get Portal Names
+		$portalids = $row['portal_ids'];
+		wh_log("Portal ids - ".$portalids);
+		$get_portals = "select * from portals where portal_id in ($portalids) and status = 1";
+		$get_portals_rs = mysqli_query($link,$get_portals);
+		wh_log("Portal Query - ".$get_portals." | Rows Found for video -- ".mysqli_num_rows($get_portals_rs));
+		if(mysqli_num_rows($get_portals_rs) > 0)
+		{
+			while($portal_row  = mysqli_fetch_assoc($get_portals_rs))
+			{  
+				$portal_array[] = singlePortalArray($portal_row,$link);
+				
+			}
+			wh_log("Poratl Array : ".str_replace("\n"," ", print_r($portal_array, true))); 
+		}
+		//Ends
+	} else { $portal_array = array(); }
+	// Ends
+	if(empty($portal_array)) { $portal_array = array(); }
+	
+	$text_temp_array = array("textId"=>$row['id'],"categoryId"=>$cat_ids,"clientId"=>$row['client_id'],"portalId"=>$portal_array,"title"=>$row['title'],"newsDate"=>$insertion_time,"postTime"=>$news_post_time,"language"=>$row['language'],"description"=>$row['description'],"tags"=>$row['tags'],"country"=>$country,"city"=>$row['city'],"author"=>$row['author'],"thumbnail"=>$imageUrl,);
+	wh_log("Text Content Array : ".str_replace("\n"," ", print_r($text_temp_array, true)));
+    return $text_temp_array;
+} 
+
+/********************************** Ends ***************************************************************************/
+
+/*************************************** Function - Get All Text Content *************************************************/
+function getAllText($portalid,$start,$count,$link,$imageBaseURL)
+{
+	$TextList = "SELECT t1.*,t2.content_id,t2.cover_image_url FROM news_metadata as t1 LEFT JOIN content_multimedia as t2 ON t1.id = t2.content_id where t1.`portal_ids` IN ($portalid) and t1.content_type ='text' and t1.status = 1 order by insertion_time desc limit $start,$count";
+	$TextList_rs = mysqli_query($link,$TextList);
+
+	wh_log("Text Query Executed : ".$TextList." | Rows Found for video -- ".mysqli_num_rows($TextList_rs));
+	if(mysqli_num_rows($TextList_rs) > 0)
+	{
+		while($row  = mysqli_fetch_assoc($TextList_rs))
+		{  
+			$text_array[] = textArray($row,$imageBaseURL,$link);
+		}
+		
+	}
+	wh_log("All Text Array : ".str_replace("\n"," ", print_r($text_array, true)));
+	return $text_array;
+}
+
+function getTextByID($portalid,$textId,$link,$imageBaseURL)
+{
+	$TextList = "SELECT t1.*,t2.content_id,t2.cover_image_url FROM news_metadata as t1 LEFT JOIN content_multimedia as t2 ON t1.id = t2.content_id where t1.`portal_ids` IN ($portalid) and t1.id = $textId and t1.content_type ='text' and t1.status = 1";
+	$TextList_rs = mysqli_query($link,$TextList);
+
+	wh_log("Text Query Executed : ".$TextList." | Rows Found for video -- ".mysqli_num_rows($TextList_rs));
+	if(mysqli_num_rows($TextList_rs) > 0)
+	{
+		while($row  = mysqli_fetch_assoc($TextList_rs))
+		{  
+			$text_array = textArray($row,$imageBaseURL,$link);
+		}
+		
+	}
+	wh_log("All Text Array : ".str_replace("\n"," ", print_r($text_array, true)));
+	return $text_array;
+	
+}
+/****************************************************** Ends ********************************************************/
+
+
+/*************************************** Function - Get All Videos Content *************************************************/
+function getAllVideos($portalid,$start,$count,$link,$imageBaseURL,$videoBaseURL)
+{
+	$videoList = "SELECT t1.*,t2.content_id,t2.video_url,t2.cover_image_url,t2.content_length,t2.extension,t2.mime FROM content_metadata as t1 LEFT JOIN content_multimedia as t2 ON t1.id = t2.content_id where t1.`portal_ids` IN ($portalid) and t1.content_type ='video' and t1.status = 1 order by insertion_time desc limit $start,$count";
+	$videoList_rs = mysqli_query($link,$videoList);
+
+	wh_log("Query Executed : ".$videoList." | Rows Found for video -- ".mysqli_num_rows($videoList_rs));
+	if(mysqli_num_rows($videoList_rs) > 0)
+	{
+		while($row  = mysqli_fetch_assoc($videoList_rs))
+		{  
+			$video_array[] = videoArray($row,$imageBaseURL,$videoBaseURL,$link);
+		}
+		
+	}
+	wh_log("All Video Array : ".str_replace("\n"," ", print_r($video_array, true)));
+	return $video_array;
+}
+function getVideoByID($portalid,$videoId,$link,$imageBaseURL,$videoBaseURL)
+{
+	$videoList = "SELECT t1.*,t2.content_id,t2.video_url,t2.cover_image_url,t2.content_length,t2.extension,t2.mime FROM content_metadata as t1 LEFT JOIN content_multimedia as t2 ON t1.id = t2.content_id where t1.`portal_ids` IN ($portalid) and t1.id = $videoId and t1.content_type ='video' and t1.status = 1";
+	$videoList_rs = mysqli_query($link,$videoList);
+
+	wh_log("Video Query Executed : ".$videoList." | Rows Found for video -- ".mysqli_num_rows($videoList_rs));
+	if(mysqli_num_rows($videoList_rs) > 0)
+	{
+		while($row  = mysqli_fetch_assoc($videoList_rs))
+		{  
+			$vid_array = videoArray($row,$imageBaseURL,$videoBaseURL,$link);
+		}
+		
+	}
+	wh_log("All Video Array : ".str_replace("\n"," ", print_r($vid_array, true)));
+	return $vid_array;
+	
+}
+/*************************************** Endsssssssssssssssssssssssssssss *************************************************/
+
+function getContentByCategoryID($contentType,$videoBaseURL,$imageBaseURL,$portalid,$values,$start,$count,$link)
+{
+	if($contentType == 1) { $dataTable = 'content_metadata'; $type = 'audio'; $vpath = $videoBaseURL; $ipath = $imageBaseURL;}
+	elseif($contentType == 2) { $dataTable = 'content_metadata'; $type = 'video'; $vpath = $videoBaseURL; $ipath = $imageBaseURL;}
+	elseif($contentType == 3) { $dataTable = 'content_metadata'; $type = 'image'; $vpath = $videoBaseURL; $ipath = $imageBaseURL;}
+	elseif($contentType == 4) { $dataTable = 'news_metadata'; $type = 'text'; $vpath = $videoBaseURL; $ipath = $imageBaseURL;}
+	
+	// Get Content By Category Id
+	foreach ($values as $value)
+	{
+		$getData = "SELECT t1.*,t2.content_id,t2.video_url,t2.cover_image_url,t2.content_length,t2.extension,t2.mime FROM $dataTable as t1 LEFT JOIN content_multimedia as t2 ON t1.id= t2.content_id where find_in_set($portalid,t1.`portal_ids`) and find_in_set($value,t1.`cat_id`) and t1.content_type ='$type' and t1.status = 1 ORDER BY t1.`insertion_time` desc limit $start,$count";
+		$getData_rs = mysqli_query($link, $getData);
+		if(mysqli_num_rows($getData_rs) > 0)
+		{
+			wh_log("Content Query Executed : ".$getData." | Rows Found for category -- ".mysqli_num_rows($getData_rs));
+			while($row  = mysqli_fetch_assoc($getData_rs))
+			{  
+				$source = 'portal';
+				if($contentType == 2) { $data1[] = videoArray($row,$ipath,$vpath,$link,$source); $data = unique_multidim_array($data1,'videoId'); }
+				elseif($contentType == 4) { $data1[] = textArray($row,$ipath,$link);  $data = unique_multidim_array($data1,'textId'); }
+			}
+		}
+	}
+	
+	wh_log("Content By Category Id : ".str_replace("\n"," ", print_r($data, true)));
+	return array_slice($data,$start,$count);
+	//Ends
+}
+
+
+/******************************************************************* Function For Most Liked Content *********************************************/
+function getMostLikedContent($start,$count,$link,$portalid,$contentType,$videoBaseURL,$imageBaseURL)
+{
+	if($contentType == 1) { $dataTable = 'content_metadata'; $type = 'audio'; $vpath = $videoBaseURL; $ipath = $imageBaseURL;}
+	elseif($contentType == 2) { $dataTable = 'content_metadata'; $type = 'video'; $vpath = $videoBaseURL; $ipath = $imageBaseURL;}
+	elseif($contentType == 3) { $dataTable = 'content_metadata'; $type = 'image'; $vpath = $videoBaseURL; $ipath = $imageBaseURL;}
+	elseif($contentType == 4) { $dataTable = 'news_metadata'; $type = 'text'; $vpath = $videoBaseURL; $ipath = $imageBaseURL;}
+	
+	$getData = "SELECT t1.*,t2.content_id,t2.video_url,t2.cover_image_url,t2.content_length,t2.extension,t2.mime 
+	FROM $dataTable as t1 LEFT JOIN content_multimedia as t2 ON t1.id= t2.content_id where find_in_set($portalid,t1.`portal_ids`) 
+	and t1.content_type ='$type' and t1.status = 1 ORDER BY t1.`like` desc limit $start,$count";
+
+	$getData_rs = mysqli_query($link, $getData);
+	if(mysqli_num_rows($getData_rs) > 0)
+	{
+		wh_log("Most Liked Content Query Executed : ".$getData." | Rows Found -- ".mysqli_num_rows($getData_rs));
+		while($row  = mysqli_fetch_assoc($getData_rs))
+		{  
+			$source = 'portal';
+			if($contentType == 2) { $data1[] = videoArray($row,$ipath,$vpath,$link,$source); $data = unique_multidim_array($data1,'videoId'); }
+			elseif($contentType == 4) { $data1[] = textArray($row,$ipath,$link); $data = unique_multidim_array($data1,'textId'); }
+		}
+	}
+	wh_log("Most Liked Content Array : ".str_replace("\n"," ", print_r($data, true)));
+	return array_slice($data,$start,$count);
+	//Ends
+}
+function getMostLikedContentByCategoryID($values,$start,$count,$link,$portalid,$contentType,$videoBaseURL,$imageBaseURL)
+{
+	if($contentType == 1) { $dataTable = 'content_metadata'; $type = 'audio'; $vpath = $videoBaseURL; $ipath = $imageBaseURL;}
+	elseif($contentType == 2) { $dataTable = 'content_metadata'; $type = 'video'; $vpath = $videoBaseURL; $ipath = $imageBaseURL;}
+	elseif($contentType == 3) { $dataTable = 'content_metadata'; $type = 'image'; $vpath = $videoBaseURL; $ipath = $imageBaseURL;}
+	elseif($contentType == 4) { $dataTable = 'news_metadata'; $type = 'text'; $vpath = $videoBaseURL; $ipath = $imageBaseURL;}
+
+	foreach ($values as $value)
+	{
+		$getData = "SELECT t1.*,t2.content_id,t2.video_url,t2.cover_image_url,t2.content_length,t2.extension,t2.mime FROM $dataTable as t1 
+		LEFT JOIN content_multimedia as t2 ON t1.id= t2.content_id where find_in_set($portalid,t1.`portal_ids`) and 
+		find_in_set($value,t1.`cat_id`) and t1.content_type ='$type' and t1.status = 1 ORDER BY t1.`like` desc limit $start,$count";
+		$getData_rs = mysqli_query($link, $getData);
+		if(mysqli_num_rows($getData_rs) > 0)
+		{
+			wh_log("Most Liked Content By Category Id Query Executed : ".$getData." | Rows Found-- ".mysqli_num_rows($getData_rs));
+			while($row  = mysqli_fetch_assoc($getData_rs))
+			{  
+				$source = 'portal';
+				if($contentType == 2) { $data1[] = videoArray($row,$ipath,$vpath,$link,$source); $data = unique_multidim_array($data1,'videoId'); }
+				elseif($contentType == 4) { $data1[] = textArray($row,$ipath,$link); $data = unique_multidim_array($data1,'textId'); }
+			}
+		}
+	}
+	wh_log("Most Liked Content By Category Id Array : ".str_replace("\n"," ", print_r($data, true)));
+    return array_slice($data,$start,$count);
+} 
+
+function sortByLike($a, $b)
+{
+    $a = $a['likesCount'];
+    $b = $b['likesCount'];
+
+    if ($a == $b) return 0;
+    return ($a > $b) ? -1 : 1;
+}
+
+/**********************************************************  Most Liked Content Functions Ends **************************************************/
+
+/********************************************************** Function For Most Viewed Content *****************************************************/
+function getMostViewedContent($start,$count,$link,$portalid,$contentType,$videoBaseURL,$imageBaseURL)
+{
+	if($contentType == 1) { $dataTable = 'content_metadata'; $type = 'audio'; $vpath = $videoBaseURL; $ipath = $imageBaseURL;}
+	elseif($contentType == 2) { $dataTable = 'content_metadata'; $type = 'video'; $vpath = $videoBaseURL; $ipath = $imageBaseURL;}
+	elseif($contentType == 3) { $dataTable = 'content_metadata'; $type = 'image'; $vpath = $videoBaseURL; $ipath = $imageBaseURL;}
+	elseif($contentType == 4) { $dataTable = 'news_metadata'; $type = 'text'; $vpath = $videoBaseURL; $ipath = $imageBaseURL;}
+	
+	$getData = "SELECT t1.*,t2.content_id,t2.video_url,t2.cover_image_url,t2.content_length,t2.extension,t2.mime 
+	FROM $dataTable as t1 LEFT JOIN content_multimedia as t2 ON t1.id= t2.content_id where find_in_set($portalid,t1.`portal_ids`) 
+	and t1.content_type ='$type' and t1.status = 1 ORDER BY t1.`view` desc limit $start,$count";
+	wh_log("Most Viewed Content Query Executed : ".$getData);
+	$getData_rs = mysqli_query($link, $getData);
+	if(mysqli_num_rows($getData_rs) > 0)
+	{
+		wh_log("Most Viewed Content Query Executed : ".$getData." | Rows Found -- ".mysqli_num_rows($getData_rs));
+		while($row  = mysqli_fetch_assoc($getData_rs))
+		{  
+			$source = 'portal';
+			if($contentType == 2) { $data1[] = videoArray($row,$ipath,$vpath,$link,$source); $data = unique_multidim_array($data1,'videoId');  }
+			elseif($contentType == 4) { $data1[] = textArray($row,$ipath,$link); $data = unique_multidim_array($data1,'textId'); }
+		}
+	}
+	wh_log("Most Viewed Content Array : ".str_replace("\n"," ", print_r($data, true)));
+	return array_slice($data,$start,$count);
+}
+
+function getMostViewedContentByCategoryID($values,$start,$count,$link,$portalid,$contentType,$videoBaseURL,$imageBaseURL)
+{
+	if($contentType == 1) { $dataTable = 'content_metadata'; $type = 'audio'; $vpath = $videoBaseURL; $ipath = $imageBaseURL;}
+	elseif($contentType == 2) { $dataTable = 'content_metadata'; $type = 'video'; $vpath = $videoBaseURL; $ipath = $imageBaseURL;}
+	elseif($contentType == 3) { $dataTable = 'content_metadata'; $type = 'image'; $vpath = $videoBaseURL; $ipath = $imageBaseURL;}
+	elseif($contentType == 4) { $dataTable = 'news_metadata'; $type = 'text'; $vpath = $videoBaseURL; $ipath = $imageBaseURL;}
+
+	foreach ($values as $value)
+	{
+		$getData = "SELECT t1.*,t2.content_id,t2.video_url,t2.cover_image_url,t2.content_length,t2.extension,t2.mime FROM $dataTable as t1 
+		LEFT JOIN content_multimedia as t2 ON t1.id= t2.content_id where find_in_set($portalid,t1.`portal_ids`) and 
+		find_in_set($value,t1.`cat_id`) and t1.content_type ='$type' and t1.status = 1 ORDER BY t1.`view` desc limit $start,$count";
+		wh_log("Most Viewed Content By Category Id Query Executed : ".$getData." | Rows Found-- ".mysqli_num_rows($getData_rs));
+
+		$getData_rs = mysqli_query($link, $getData);
+		if(mysqli_num_rows($getData_rs) > 0)
+		{
+			wh_log("Most Viewed Content By Category Id Query Executed : ".$getData." | Rows Found-- ".mysqli_num_rows($getData_rs));
+			while($row  = mysqli_fetch_assoc($getData_rs))
+			{  
+				$source = 'portal';
+				if($contentType == 2) { $data1[] = videoArray($row,$ipath,$vpath,$link,$source); $data = unique_multidim_array($data1,'videoId'); }
+				elseif($contentType == 4) { $data1[] = textArray($row,$ipath,$link); $data = unique_multidim_array($data1,'textId'); }
+			}
+		}
+	}
+	
+	wh_log("Most Viewed Content By Category Id Array : ".str_replace("\n"," ", print_r($data, true)));
+    return array_slice($data,$start,$count);
+} 
+function sortByView($a, $b)
+{
+    $a = $a['viewsCount'];
+    $b = $b['viewsCount'];
+
+    if ($a == $b) return 0;
+    return ($a > $b) ? -1 : 1;
+}
+/*******************************************************************  Most Viewed Content Functions Ends ******************************************/
+
+/***************************************************** Function For Most Recent/Latest Contents ***************************************************/
+function getLatestContent($start,$count,$link,$portalid,$contentType,$videoBaseURL,$imageBaseURL)
+{
+	if($contentType == 1) { $dataTable = 'content_metadata'; $type = 'audio'; $vpath = $videoBaseURL; $ipath = $imageBaseURL;}
+	elseif($contentType == 2) { $dataTable = 'content_metadata'; $type = 'video'; $vpath = $videoBaseURL; $ipath = $imageBaseURL;}
+	elseif($contentType == 3) { $dataTable = 'content_metadata'; $type = 'image'; $vpath = $videoBaseURL; $ipath = $imageBaseURL;}
+	elseif($contentType == 4) { $dataTable = 'news_metadata'; $type = 'text'; $vpath = $videoBaseURL; $ipath = $imageBaseURL;}
+	
+	$getData = "SELECT t1.*,t2.content_id,t2.video_url,t2.cover_image_url,t2.content_length,t2.extension,t2.mime 
+	FROM $dataTable as t1 LEFT JOIN content_multimedia as t2 ON t1.id= t2.content_id where find_in_set($portalid,t1.`portal_ids`) 
+	and t1.content_type ='$type' and t1.status = 1 ORDER BY t1.`insertion_time` desc limit $start,$count";
+	wh_log("Most Latest Content Query Executed : ".$getData);
+	$getData_rs = mysqli_query($link, $getData);
+	if(mysqli_num_rows($getData_rs) > 0)
+	{
+		wh_log("Most Latest Content Query Executed : ".$getData." | Rows Found -- ".mysqli_num_rows($getData_rs));
+		while($row  = mysqli_fetch_assoc($getData_rs))
+		{  
+			$source = 'portal';
+			if($contentType == 2) { $data1[] = videoArray($row,$ipath,$vpath,$link,$source); $data = unique_multidim_array($data1,'videoId'); }
+			elseif($contentType == 4) { $data1[] = textArray($row,$ipath,$link); $data = unique_multidim_array($data1,'textId'); }
+		}
+	}
+	wh_log("Most Latest Content Array : ".str_replace("\n"," ", print_r($data, true)));
+	return array_slice($data,$start,$count);
+}
+
+function getMostLatestContentByCategoryID($values,$start,$count,$link,$portalid,$contentType,$videoBaseURL,$imageBaseURL)
+{
+	if($contentType == 1) { $dataTable = 'content_metadata'; $type = 'audio'; $vpath = $videoBaseURL; $ipath = $imageBaseURL;}
+	elseif($contentType == 2) { $dataTable = 'content_metadata'; $type = 'video'; $vpath = $videoBaseURL; $ipath = $imageBaseURL;}
+	elseif($contentType == 3) { $dataTable = 'content_metadata'; $type = 'image'; $vpath = $videoBaseURL; $ipath = $imageBaseURL;}
+	elseif($contentType == 4) { $dataTable = 'news_metadata'; $type = 'text'; $vpath = $videoBaseURL; $ipath = $imageBaseURL;}
+
+	foreach ($values as $value)
+	{
+		$getData = "SELECT t1.*,t2.content_id,t2.video_url,t2.cover_image_url,t2.content_length,t2.extension,t2.mime FROM $dataTable as t1 
+		LEFT JOIN content_multimedia as t2 ON t1.id= t2.content_id where find_in_set($portalid,t1.`portal_ids`) and 
+		find_in_set($value,t1.`cat_id`) and t1.content_type ='$type' and t1.status = 1 ORDER BY t1.`insertion_time` desc limit $start,$count";
+		wh_log("Most Latest Content By Category Id Query Executed : ".$getData." | Rows Found-- ".mysqli_num_rows($getData_rs));
+
+		$getData_rs = mysqli_query($link, $getData);
+		if(mysqli_num_rows($getData_rs) > 0)
+		{
+			wh_log("Most Latest Content By Category Id Query Executed : ".$getData." | Rows Found-- ".mysqli_num_rows($getData_rs));
+			while($row  = mysqli_fetch_assoc($getData_rs))
+			{  
+				$source = 'portal';
+				if($contentType == 2) { $data1[] = videoArray($row,$ipath,$vpath,$link,$source); $data = unique_multidim_array($data1,'videoId'); }
+				elseif($contentType == 4) { $data1[] = textArray($row,$ipath,$link); $data = unique_multidim_array($data1,'textId'); }
+			}
+		}
+	}
+	
+	wh_log("Most Viewed Content By Category Id Array : ".str_replace("\n"," ", print_r($data, true)));
+    return array_slice($data,$start,$count);
+} 
+function sortByRecent($a, $b)
+{
+    $a = $a['createDate'];
+    $b = $b['createDate'];
+
+    if ($a == $b) return 0;
+    return ($a > $b) ? -1 : 1;
+}
+
+/*********************************************  Ends Most Recent/Latest Contents Functions  *****************************************************/
+
+
 ?>
