@@ -60,13 +60,16 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
             {
                 $portalid = $portalrow['portal_id'];
 
-                if($contentType == 1) { $dataTable = 'content_metadata'; $type = 'audio'; $vpath = $videoBaseURL; $ipath = $imageBaseURL;}
+                /* if($contentType == 1) { $dataTable = 'content_metadata'; $type = 'audio'; $vpath = $videoBaseURL; $ipath = $imageBaseURL;}
 				elseif($contentType == 2) { $dataTable = 'content_metadata'; $type = 'video'; $vpath = $videoBaseURL; $ipath = $imageBaseURL;}
 				elseif($contentType == 3) { $dataTable = 'content_metadata'; $type = 'image'; $vpath = $videoBaseURL; $ipath = $imageBaseURL;}
-                elseif($contentType == 4) { $dataTable = 'news_metadata'; $type = 'text'; $vpath = $videoBaseURL; $ipath = $imageBaseURL;}
+                elseif($contentType == 4) { $dataTable = 'news_metadata'; $type = 'text'; $vpath = $videoBaseURL; $ipath = $imageBaseURL;} */
+				
+				$carr = getContentTypeData($contentType,$videoBaseURL,$imageBaseURL);
+				$dataTable = $carr['dataTable'];
                 
                 //Check Content Id Exist Or Not
-                $check_contentid = "SELECT * FROM $dataTable WHERE id = $contentId and status = 1 and content_type = '$type' 
+                $check_contentid = "SELECT * FROM $dataTable WHERE id = $contentId and status = 1 and content_type = '".$carr['type']."' 
                 and find_in_set($portalid,`portal_ids`)";
 				wh_log("Check Content Id Select Query - ".$check_contentid);
 				$check_contentid_rs = mysqli_query($link,$check_contentid);
@@ -76,9 +79,9 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
                     {
                         // update data
                         wh_log("Check Content Id Select Query - ".$check_contentid." | Rows Count - ".mysqli_num_rows($check_contentid_rs));
-                        $update_content = "update $dataTable set `like` = `like`+1 WHERE id = $contentId and status = 1 and content_type = '$type' and find_in_set($portalid,`portal_ids`)";
+                        $update_content = "update $dataTable set `like` = `like`+1 WHERE id = $contentId and status = 1 and content_type = '".$carr['type']."' and find_in_set($portalid,`portal_ids`)";
                         $update_content_rs = mysqli_query($link,$update_content);
-                        echo $count = mysqli_affected_rows($link);
+                        $count = mysqli_affected_rows($link);
                         wh_log("Update Content Query - ".$update_content);
                         if($count > 0)
 			            {

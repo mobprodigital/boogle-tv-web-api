@@ -29,65 +29,48 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 	}
 	else
 	{
-		$getPortal = "SELECT * from portals where name = '$name' and find_in_set($contentTypeId,`content_type`) and  status =1";
-		wh_log("Portal Query - ".$getPortal);
-		$getPortal_rs = mysqli_query($link,$getPortal);
-		if($getPortal_rs)
+		// Check Portal Name With ContentType exist or not
+	    $portalIds = portalExist($name,$link,$contentTypeId);
+		if($portalIds)
 		{
-			if(mysqli_num_rows($getPortal_rs) > 0)
+			$getcategory = "SELECT * FROM `category` WHERE find_in_set($portalIds,`portal_ids`) and find_in_set($contentTypeId,`content_type_id`) and status =1 ORDER BY `insertion_time` desc limit $start,$count";
+			wh_log("Category Query - ".$getcategory);
+			$getcategory_rs = mysqli_query($link,$getcategory);
+			if($getcategory_rs)
 			{
-				if($row  = mysqli_fetch_assoc($getPortal_rs))
+				if(mysqli_num_rows($getcategory_rs) > 0)
 				{
-					$portalIds = $row['portal_id'];
-					$getcategory = "SELECT * FROM `category` WHERE find_in_set($portalIds,`portal_ids`) and find_in_set(2,`content_type_id`) and status =1 ORDER BY `insertion_time` desc limit $start,$count";
-					wh_log("Category Query - ".$getcategory);
-					$getcategory_rs = mysqli_query($link,$getcategory);
-					if($getcategory_rs)
-					{
-						if(mysqli_num_rows($getcategory_rs) > 0)
-						{
-							while($cat_row  = mysqli_fetch_assoc($getcategory_rs))
-							{  
-								$cat_array[] = singleCategoryArray($cat_row,$link);
-							}
-							if(empty($cat_array))
-							{
-								$cat_array = array();
-								$response['status']=false;
-								$response['message']="No Categories Found Regarding Portal ". $name;
-								$response['data'] = $cat_array;
-							}
-							else
-							{
-								$response['status']=true;
-								$response['message']= "Success";
-								$response['data'] = $cat_array;
-							}
-						}
-						else
-						{
-							$cat_array = array();
-							$response['status']=false;
-							$response['message']="No Categories Found Regarding Portal ". $name;
-							$response['data'] = $cat_array;
-						}
+					while($cat_row  = mysqli_fetch_assoc($getcategory_rs))
+					{  
+						$cat_array[] = singleCategoryArray($cat_row,$link);
 					}
-					else
+					if(empty($cat_array))
 					{
 						$cat_array = array();
 						$response['status']=false;
-						$response['message']=mysqli_error($link);
+						$response['message']="No Categories Found Regarding Portal ". $name;
 						$response['data'] = $cat_array;
 					}
-					
-					
+					else
+					{
+						$response['status']=true;
+						$response['message']= "Success";
+						$response['data'] = $cat_array;
+					}
+				}
+				else
+				{
+					$cat_array = array();
+					$response['status']=false;
+					$response['message']="No Categories Found Regarding Portal ". $name;
+					$response['data'] = $cat_array;
 				}
 			}
 			else
 			{
 				$cat_array = array();
 				$response['status']=false;
-				$response['message']="Invalid Portal Name";
+				$response['message']=mysqli_error($link);
 				$response['data'] = $cat_array;
 			}
 		}
@@ -95,9 +78,10 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 		{
 			$cat_array = array();
 			$response['status']=false;
-			$response['message']=mysqli_error($link);
+			$response['message']="Invalid Portal Name";
 			$response['data'] = $cat_array;
 		}
+		
 	}
 	
 }

@@ -76,13 +76,16 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 				$portalid = $portalrow['portal_id'];
 				$view_time_in_hour_minutes = gmdate("H:i:s",$view_time);
 				
-				if($contentType == 1) { $dataTable = 'content_metadata'; $type = 'audio'; $vpath = $videoBaseURL; $ipath = $imageBaseURL;}
+				/* if($contentType == 1) { $dataTable = 'content_metadata'; $type = 'audio'; $vpath = $videoBaseURL; $ipath = $imageBaseURL;}
 				elseif($contentType == 2) { $dataTable = 'content_metadata'; $type = 'video'; $vpath = $videoBaseURL; $ipath = $imageBaseURL;}
 				elseif($contentType == 3) { $dataTable = 'content_metadata'; $type = 'image'; $vpath = $videoBaseURL; $ipath = $imageBaseURL;}
-                elseif($contentType == 4) { $dataTable = 'news_metadata'; $type = 'text'; $vpath = $videoBaseURL; $ipath = $imageBaseURL;}
+                elseif($contentType == 4) { $dataTable = 'news_metadata'; $type = 'text'; $vpath = $videoBaseURL; $ipath = $imageBaseURL;} */
+				
+				$carr = getContentTypeData($contentType,$videoBaseURL,$imageBaseURL);
+				$dataTable = $carr['dataTable'];
 
 				// Check Content Id Exist Or Not
-				$check_contentid = "SELECT * FROM $dataTable WHERE id = $contentId and status = 1 and content_type = '$type' 
+				$check_contentid = "SELECT * FROM $dataTable WHERE id = $contentId and status = 1 and content_type = '".$carr['type']."' 
                 and find_in_set($portalid,`portal_ids`)";
 				wh_log("Check Content Id Select Query - ".$check_contentid." | view_time_in_hour_minutes : ".$view_time_in_hour_minutes." | Total Rows - ".mysqli_num_rows($check_contentid_rs));
 				$check_contentid_rs = mysqli_query($link,$check_contentid);
@@ -93,7 +96,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 						if($row  = mysqli_fetch_assoc($check_contentid_rs))
 			            { 
 				            $result = secondsToMinutes($row['view_time'],$view_time_in_hour_minutes);
-				            $updateList = "update $dataTable set view_time = '$result' WHERE id = $contentId and status = 1 and content_type = '$type' 
+				            $updateList = "update $dataTable set view_time = '$result' WHERE id = $contentId and status = 1 and content_type = '".$carr['type']."' 
 							and find_in_set($portalid,`portal_ids`)";
 				            wh_log("Total hh:mm:ss : ".$result. " | Update Query - ".$updateList);
 							$updateList_rs = mysqli_query($link,$updateList);

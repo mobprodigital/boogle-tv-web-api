@@ -37,65 +37,57 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 	else
 	{
 		// Check Portal Name With ContentType exist or not
-		$portalCheck = "SELECT * FROM `portals` WHERE status =1 and `name` ='$portal' and find_in_set($contentType,`content_type`)";
-		$portalCheck_rs = mysqli_query($link,$portalCheck);
-		wh_log("Portal Check Query Executed : ".$portalCheck);
-		if(mysqli_num_rows($portalCheck_rs) > 0)
+		$portalid = portalExist($portal,$link,$contentType);
+		if($portalid)
 		{
-			//Get Portal ID
-			if($portalrow = mysqli_fetch_assoc($portalCheck_rs))
-			{ 
-				echo $portalid = $portalrow['portal_id'];
-				if($contentType == 1) { $dataTable = 'content_metadata'; $type = 'audio'; $vpath = $videoBaseURL; $ipath = $imageBaseURL;}
-				elseif($contentType == 2) { $dataTable = 'content_metadata'; $type = 'video'; $vpath = $videoBaseURL; $ipath = $imageBaseURL;}
-				elseif($contentType == 3) { $dataTable = 'content_metadata'; $type = 'image'; $vpath = $videoBaseURL; $ipath = $imageBaseURL;}
-				elseif($contentType == 4) { $dataTable = 'news_metadata'; $type = 'text'; $vpath = $videoBaseURL; $ipath = $imageBaseURL;}
+			$carr = getContentTypeData($contentType,$videoBaseURL,$imageBaseURL);
+            $dataTable = $carr['dataTable'];
 				
-				// Get Content
-				$getData = "SELECT t1.*,t2.content_id,t2.video_url,t2.cover_image_url,t2.content_length,t2.extension,t2.mime FROM $dataTable as t1 LEFT JOIN content_multimedia as t2 ON t1.id = t2.content_id where find_in_set($portalid,t1.`portal_ids`) and t1.content_type ='$type' and t1.status = 1 ORDER BY t1.`insertion_time` desc limit $start,$count";
-				wh_log("Get Content Portal wise Query Executed : ".$getData);
-				$getData_rs = mysqli_query($link,$getData);
-				if($getData_rs)
-				{
-					if(mysqli_num_rows($getData_rs) > 0)
-					{ 
-						while($row  = mysqli_fetch_assoc($getData_rs))
-						{  
-							$source = 'portal';
-							if($contentType == 2) { $data[] = videoArray($row,$ipath,$vpath,$link,$source);}
-							elseif($contentType == 4) { $data[] = textArray($row,$ipath,$link); }
-							
-						}
-						if(!empty($data))
-						{
-						$response['status']=true;
-						$response['message']="Success";
-						$response['data'] = $data;	
-						} else {
-						$data = array();
-						$response['status']=false;
-						$response['message']="No Content Found For This Portal ".$portal;
-						$response['data'] = $data;	
-						} 
+			// Get Content
+			$getData = "SELECT t1.*,t2.content_id,t2.video_url,t2.cover_image_url,t2.content_length,t2.extension,t2.mime FROM $dataTable as t1 LEFT JOIN content_multimedia as t2 ON t1.id = t2.content_id where find_in_set($portalid,t1.`portal_ids`) and t1.content_type ='".$carr['type']."' and t1.status = 1 ORDER BY t1.`insertion_time` desc limit $start,$count";
+			wh_log("Get Content Portal wise Query Executed : ".$getData);
+			$getData_rs = mysqli_query($link,$getData);
+			if($getData_rs)
+			{
+				if(mysqli_num_rows($getData_rs) > 0)
+				{ 
+					while($row  = mysqli_fetch_assoc($getData_rs))
+					{  
+						$source = 'portal';
+						if($contentType == 2) { $data[] = videoArray($row,$carr['ipath'],$carr['vpath'],$link,$source);}
+						elseif($contentType == 4) { $data[] = textArray($row,$carr['ipath'],$link); }
+						
 					}
-					else
+					if(!empty($data))
 					{
-						$data = array();
-						$response['status']=false;
-						$response['message']="No Content Found For This Portal ".$portal;
-						$response['data'] = $data;
-					}
+					$response['status']=true;
+					$response['message']="Success";
+					$response['data'] = $data;	
+					} else {
+					$data = array();
+					$response['status']=false;
+					$response['message']="No Content Found For This Portal ".$portal;
+					$response['data'] = $data;	
+					} 
 				}
 				else
 				{
 					$data = array();
 					$response['status']=false;
-					$response['message']=mysqli_error($link);
+					$response['message']="No Content Found For This Portal ".$portal;
 					$response['data'] = $data;
 				}
-				//Ends
-				
 			}
+			else
+			{
+				$data = array();
+				$response['status']=false;
+				$response['message']=mysqli_error($link);
+				$response['data'] = $data;
+			}
+			//Ends
+				
+			
 		}
 		else
 		{
