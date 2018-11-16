@@ -256,6 +256,41 @@ function getCategoryArrayByIds($cat_id,$link)
 	}
 }
 /********************************** Ends ***************************************************************************/
+function textArray($row,$imageBaseURL,$link)
+{
+	if(!empty($row['cover_image_url'])) { $imageUrl = $imageBaseURL.'/'.$row['cover_image_url']; } else { $imageUrl = $imageBaseURL.'/default.jpg';}
+	
+	$news_date = explode(' ',$row['insertion_time']);
+	$insertion_time = date("d/m/Y", strtotime($news_date[0]));
+	
+	$post_time = explode(' ',$row['post_time']);
+	$news_post_time = date("Y/m/d", strtotime($post_time[0]));
+			
+	// Convert comma seperated strings to array
+	if(!empty($row['tags'])) { $tags = comma_separated_to_array($row['tags']); } else { $tags = array();}
+	if(!empty($row['country'])) { $country = comma_separated_to_array($row['country']); } else { $country = array();}
+	
+    // Get Portal Names
+	if(!empty($row['portal_ids']))
+	{ 
+		$portalids = $row['portal_ids'];
+		$portal_array = getPortalArrayByIds($portalids,$link);
+	} else { $portal_array = array(); }
+	if(empty($portal_array)) { $portal_array = array(); }
+	// Ends
+	
+	// Fetch Category Array
+	if(!empty($row['cat_id']))
+	{ 
+		$cat_id = $row['cat_id'];
+		$cat_array = getCategoryArrayByIds($cat_id,$link);
+	} else { $cat_ids = array();}
+    if(empty($cat_array)) { $cat_array = array(); }
+	//Ends
 
+	$text_temp_array = array("textId"=>$row['id'],"categoryId"=>$cat_array,"clientId"=>$row['client_id'],"portalId"=>$portal_array,"title"=>$row['title'],"newsDate"=>$insertion_time,"postTime"=>$news_post_time,"language"=>$row['language'],"description"=>$row['description'],"tags"=>$row['tags'],"country"=>$country,"city"=>$row['city'],"author"=>$row['author'],"thumbnail"=>$imageUrl,);
+	wh_log("Text Content Array : ".str_replace("\n"," ", print_r($text_temp_array, true)));
+    return $text_temp_array;
+} 
 
 ?>

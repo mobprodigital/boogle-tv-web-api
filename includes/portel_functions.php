@@ -44,12 +44,19 @@ function portalVideoArray($row,$imageBaseURL,$videoBaseURL,$link)
     if(empty($cat_array)) { $cat_array = array(); }
 	//Ends
 
-	$video_temp_array = array("videoId"=>$row['id'],"categoryId"=>$cat_array,"clientId"=>$row['client_id'],"portalId"=>$portal_array,"title"=>$row['title'],"videoUrl"=>$videoUrl,"videoTags"=>$tags,"videoDate"=>$insertion_time,"language"=>$row['language'],"description"=>$row['description'],"coverImage"=>array("original"=>$imageUrl,"large"=>"","medium"=>"","small"=>""),"videoLength"=>$row['content_length'],"extension"=>$row['extension'],"videoMime"=>$row['mime'],"minAgeReq"=>$row['min_age_req'],"broadcasterName"=>$row['broadcaster_name'],"type"=>$row['type'],"currentAvailability"=>$row['content_availability'],"platform"=>$row['platform'],"adult"=>$row['adult'],"downloadRights"=>$row['download_rights'],"internationalRights"=>$row['intrernational_rights'],"genere"=>$row['genre'],"director"=>$row['director'],"producer"=>$row['producer'],"writer"=>$row['writer'],"musicDirector"=>$row['music_director'],"productionHouse"=>$row['production_house'],"actor"=>$row['actor'],"singer"=>$row['singer'],"country"=>$country,"viewsCount"=>$row['view'],"likesCount"=>$row['like'],"dislikesCount"=>$row['dislike']);
+	$video_temp_array = array("videoId"=>$row['id'],"categoryId"=>$cat_array,"clientId"=>$row['client_id'],"portalId"=>$portal_array,
+	"title"=>$row['title'],"videoUrl"=>$videoUrl,"videoTags"=>$tags,"videoDate"=>$insertion_time,"language"=>$row['language'],
+	"description"=>$row['description'],"coverImage"=>array("original"=>$imageUrl,"large"=>"","medium"=>"","small"=>""),"videoLength"=>$row['content_length'],
+	"extension"=>$row['extension'],"videoMime"=>$row['mime'],"minAgeReq"=>$row['min_age_req'],"broadcasterName"=>$row['broadcaster_name'],
+	"type"=>$row['type'],"currentAvailability"=>$row['content_availability'],"platform"=>$row['platform'],"adult"=>$row['adult'],"downloadRights"=>$row['download_rights'],
+	"internationalRights"=>$row['intrernational_rights'],"genere"=>$row['genre'],"director"=>$row['director'],"producer"=>$row['producer'],
+	"writer"=>$row['writer'],"musicDirector"=>$row['music_director'],"productionHouse"=>$row['production_house'],"actor"=>$row['actor'],
+	"singer"=>$row['singer'],"country"=>$country,"viewsCount"=>$row['view'],"likesCount"=>$row['like'],"dislikesCount"=>$row['dislike']);
 	wh_log("Video Content Array : ".str_replace("\n"," ", print_r($video_temp_array, true)));
     return $video_temp_array;
 } 
 
-function textArray($row,$imageBaseURL,$link)
+function portalTextArray($row,$imageBaseURL,$link)
 {
 	if(!empty($row['cover_image_url'])) { $imageUrl = $imageBaseURL.'/'.$row['cover_image_url']; } else { $imageUrl = $imageBaseURL.'/default.jpg';}
 	

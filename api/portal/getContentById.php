@@ -73,7 +73,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 					{  
 						//$source = 'portal'; 
 						if($contentType == 2) { $data[] = portalVideoArray($row,$carr['ipath'],$carr['vpath'],$link);}
-						elseif($contentType == 4) { $data[] = textArray($row,$carr['ipath'],$link); }
+						elseif($contentType == 4) { $data[] = portalTextArray($row,$carr['ipath'],$link); }
 					}
 					if(!empty($data))
 					{
