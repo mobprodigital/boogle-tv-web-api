@@ -75,10 +75,10 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 					}
 					// Ends
 				}
-				if($_FILES['thumbnail']['size'] > 0 && $_FILES['thumbnail']['error'] == 0)
+				if($_FILES['videoThumbnail']['size'] > 0 && $_FILES['videoThumbnail']['error'] == 0)
 				{
 					/* Image details */
-					$filename = $_FILES["thumbnail"]["name"];
+					$filename = $_FILES["videoThumbnail"]["name"];
 					$file_ext = substr($filename, strripos($filename, '.')); // get file name
 					$allowed_file_types = array('.png','.jpg','.jpeg','.JPG','.JPEG','.PNG');
 					wh_log("filename ".$filename." file_ext - ".$file_ext);
@@ -88,7 +88,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 					// Upload Cover Image
 					if(in_array($file_ext,$allowed_file_types)) 
 					{
-						if(move_uploaded_file($_FILES["thumbnail"]["tmp_name"],$imageBaseDirURL . $filename))
+						if(move_uploaded_file($_FILES["videoThumbnail"]["tmp_name"],$imageBaseDirURL . $filename))
 						{ $image_status = true; }
 						else
 						{

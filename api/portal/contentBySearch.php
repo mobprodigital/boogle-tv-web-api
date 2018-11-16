@@ -7,13 +7,13 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 {
 	$req_data = json_decode(file_get_contents("php://input"), true);
 	wh_log("Json In Request : ".str_replace("\n"," ", print_r($req_data, true)));
-    
-    $start = mysqli_real_escape_string($link,isset($req_data['start'])) ? mysqli_real_escape_string($link,trim($req_data['start'])) :'0';
-	$count = mysqli_real_escape_string($link,isset($req_data['count'])) ? mysqli_real_escape_string($link,trim($req_data['count'])) :'9';
+
 	$portal = mysqli_real_escape_string($link,isset($req_data['portalName'])) ? mysqli_real_escape_string($link,trim($req_data['portalName'])) :'';
 	$contentType = mysqli_real_escape_string($link,isset($req_data['contentType'])) ? mysqli_real_escape_string($link,trim($req_data['contentType'])) :'';
-	$tag = mysqli_real_escape_string($link,isset($req_data['tag'])) ? mysqli_real_escape_string($link,trim($req_data['tag'])) :'';
-    
+	$term = mysqli_real_escape_string($link,isset($req_data['searchTerm'])) ? mysqli_real_escape_string($link,trim($req_data['searchTerm'])) :'';
+	$start = mysqli_real_escape_string($link,isset($req_data['start'])) ? mysqli_real_escape_string($link,trim($req_data['start'])) :'0';
+	$count = mysqli_real_escape_string($link,isset($req_data['count'])) ? mysqli_real_escape_string($link,trim($req_data['count'])) :'9';
+
     if(empty($portal) || $portal == null)
 	{
 		$data = array();
@@ -34,50 +34,43 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 		$response['status']=false;
 		$response['message']="Allowed only numbers in content type parameter";
 		$response['data']= $data;
-    }
-    elseif(empty($tag) || $tag == null)
+	}
+	elseif(empty($term) || $term == null)
 	{
 	$data = array();
 	$response['status']=false;
-	$response['message']="tag parameter is missing.";
+	$response['message']="Search Term parameter is missing.";
 	$response['data'] = $data;
 	}
-	elseif(!preg_match("/^[a-zA-Z]+$/", $tag))
+	else
 	{
-	$data = array();
-	$response['status']=false;
-	$response['message']="Allowed only alphabets in Tag Field";
-	$response['data'] = $data;	
-    }
-    else
-    {
         // Check Portal Name With ContentType exist or not
 	    $portalid = portalExist($portal,$link,$contentType);
-		if($portalid)
+        if($portalid)
         {
-            $data = getContentByTag(trim($tag),$start,$count,$link,$portalid,$contentType,$videoBaseURL,$imageBaseURL);
-			wh_log("Final Array : ".str_replace("\n"," ", print_r($data, true)));
-	
-			if(!empty($data))
-			{
-			$response['status']=true;
-			$response['message']="Success";
-			$response['data'] = $data;	
-			} else {
-			$data = array();
-			$response['status']=false;
-			$response['message']="No Content Found For This Tag";
-			$response['data'] = $data;	
-			}	
+            $data = getContentBySearch($contentType,$portalid,$term,$start,$count,$link,$videoBaseURL,$imageBaseURL);
+            wh_log("Final Array : ".str_replace("\n"," ", print_r($data, true)));
+            
+            if(!empty($data))
+            {
+            $response['status']=true;
+            $response['message']="Success";
+            $response['data'] = $data;	
+            } else {
+            $data = array();
+            $response['status']=false;
+            $response['message']="No Content Found.";
+            $response['data'] = $data;	
+            }	
         }
         else
-		{
-			$data = array();
+        {
+            $data = array();
 			$response['status']=false;
 			$response['message']="Invalid Request";
 			$response['data'] = $data;	
-		}
-    }
+        }
+	}
 }
 else
 {
@@ -88,3 +81,5 @@ else
 wh_log("Response : ".str_replace("\n"," ", print_r($response, true)));
 echo json_encode($response,JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
 ?>
+
+

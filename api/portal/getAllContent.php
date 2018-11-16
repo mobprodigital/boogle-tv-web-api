@@ -53,8 +53,8 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 				{ 
 					while($row  = mysqli_fetch_assoc($getData_rs))
 					{  
-						$source = 'portal';
-						if($contentType == 2) { $data[] = videoArray($row,$carr['ipath'],$carr['vpath'],$link,$source);}
+						//$source = 'portal';
+						if($contentType == 2) { $data[] = portalVideoArray($row,$carr['ipath'],$carr['vpath'],$link);}
 						elseif($contentType == 4) { $data[] = textArray($row,$carr['ipath'],$link); }
 						
 					}

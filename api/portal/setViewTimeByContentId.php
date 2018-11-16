@@ -65,78 +65,70 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 	else
 	{
 		// Check Portal Name With ContentType exist or not
-		$portalCheck = "SELECT * FROM `portals` WHERE status =1 and `name` ='$portal' and find_in_set($contentType,`content_type`)";
-		$portalCheck_rs = mysqli_query($link,$portalCheck);
-		wh_log("Portal Check Query Executed : ".$portalCheck);
-		if(mysqli_num_rows($portalCheck_rs) > 0)
+	    $portalid = portalExist($portal,$link,$contentType);
+		if($portalid)
 		{
-			//Get Portal ID
-			if($portalrow = mysqli_fetch_assoc($portalCheck_rs))
+			$view_time_in_hour_minutes = gmdate("H:i:s",$view_time);
+				
+			/* if($contentType == 1) { $dataTable = 'content_metadata'; $type = 'audio'; $vpath = $videoBaseURL; $ipath = $imageBaseURL;}
+			elseif($contentType == 2) { $dataTable = 'content_metadata'; $type = 'video'; $vpath = $videoBaseURL; $ipath = $imageBaseURL;}
+			elseif($contentType == 3) { $dataTable = 'content_metadata'; $type = 'image'; $vpath = $videoBaseURL; $ipath = $imageBaseURL;}
+            elseif($contentType == 4) { $dataTable = 'news_metadata'; $type = 'text'; $vpath = $videoBaseURL; $ipath = $imageBaseURL;} */
+				
+			$carr = getContentTypeData($contentType,$videoBaseURL,$imageBaseURL);
+			$dataTable = $carr['dataTable'];
+
+			// Check Content Id Exist Or Not
+			$check_contentid = "SELECT * FROM $dataTable WHERE id = $contentId and status = 1 and content_type = '".$carr['type']."' 
+			and find_in_set($portalid,`portal_ids`)";
+			wh_log("Check Content Id Select Query - ".$check_contentid." | view_time_in_hour_minutes : ".$view_time_in_hour_minutes." | Total Rows - ".mysqli_num_rows($check_contentid_rs));
+			$check_contentid_rs = mysqli_query($link,$check_contentid);
+			if($check_contentid_rs)
 			{
-				$portalid = $portalrow['portal_id'];
-				$view_time_in_hour_minutes = gmdate("H:i:s",$view_time);
-				
-				/* if($contentType == 1) { $dataTable = 'content_metadata'; $type = 'audio'; $vpath = $videoBaseURL; $ipath = $imageBaseURL;}
-				elseif($contentType == 2) { $dataTable = 'content_metadata'; $type = 'video'; $vpath = $videoBaseURL; $ipath = $imageBaseURL;}
-				elseif($contentType == 3) { $dataTable = 'content_metadata'; $type = 'image'; $vpath = $videoBaseURL; $ipath = $imageBaseURL;}
-                elseif($contentType == 4) { $dataTable = 'news_metadata'; $type = 'text'; $vpath = $videoBaseURL; $ipath = $imageBaseURL;} */
-				
-				$carr = getContentTypeData($contentType,$videoBaseURL,$imageBaseURL);
-				$dataTable = $carr['dataTable'];
-
-				// Check Content Id Exist Or Not
-				$check_contentid = "SELECT * FROM $dataTable WHERE id = $contentId and status = 1 and content_type = '".$carr['type']."' 
-                and find_in_set($portalid,`portal_ids`)";
-				wh_log("Check Content Id Select Query - ".$check_contentid." | view_time_in_hour_minutes : ".$view_time_in_hour_minutes." | Total Rows - ".mysqli_num_rows($check_contentid_rs));
-				$check_contentid_rs = mysqli_query($link,$check_contentid);
-				if($check_contentid_rs)
+				if(mysqli_num_rows($check_contentid_rs) > 0)
 				{
-					if(mysqli_num_rows($check_contentid_rs) > 0)
-					{
-						if($row  = mysqli_fetch_assoc($check_contentid_rs))
-			            { 
-				            $result = secondsToMinutes($row['view_time'],$view_time_in_hour_minutes);
-				            $updateList = "update $dataTable set view_time = '$result' WHERE id = $contentId and status = 1 and content_type = '".$carr['type']."' 
-							and find_in_set($portalid,`portal_ids`)";
-				            wh_log("Total hh:mm:ss : ".$result. " | Update Query - ".$updateList);
-							$updateList_rs = mysqli_query($link,$updateList);
-							$count = mysqli_affected_rows($link);
-							wh_log("Update Content Query - ".$updateList);
-							if($count > 0)
-							{
-							  $data = array();  
-							  $response['status']=true;
-							  $response['message']="View Time Increased by ".$view_time. " seconds.";
-							  $response['data']= $data;
-							}
-							else
-							{
-							  $data = array();
-							  $response['status']=false;
-							  $response['message']= "Invalid Content Id";
-							  $response['data']= $data;
-							} 
-			            } 
+					if($row  = mysqli_fetch_assoc($check_contentid_rs))
+					{ 
+						$result = secondsToMinutes($row['view_time'],$view_time_in_hour_minutes);
+						$updateList = "update $dataTable set view_time = '$result' WHERE id = $contentId and status = 1 and content_type = '".$carr['type']."' 
+						and find_in_set($portalid,`portal_ids`)";
+						wh_log("Total hh:mm:ss : ".$result. " | Update Query - ".$updateList);
+						$updateList_rs = mysqli_query($link,$updateList);
+						$count = mysqli_affected_rows($link);
+						wh_log("Update Content Query - ".$updateList);
+						if($count > 0)
+						{
+							$data = array();  
+							$response['status']=true;
+							$response['message']="View Time Increased by ".$view_time. " seconds.";
+							$response['data']= $data;
+						}
+						else
+						{
+							$data = array();
+							$response['status']=false;
+							$response['message']= "Invalid Content Id";
+							$response['data']= $data;
+						} 
+					} 
 
-					}
-					else
-					{
-						$data = array();
-						$response['status']=false;
-						$response['message']="Invalid Content Id";
-						$response['data']= $data;
-					}
 				}
 				else
 				{
 					$data = array();
 					$response['status']=false;
-					$response['message']=mysqli_error($link);
+					$response['message']="Invalid Content Id";
 					$response['data']= $data;
 				}
-				//Ends
 			}
-
+			else
+			{
+				$data = array();
+				$response['status']=false;
+				$response['message']=mysqli_error($link);
+				$response['data']= $data;
+			}
+			//Ends
 		}
 		else
 		{

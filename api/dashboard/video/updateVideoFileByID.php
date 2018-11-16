@@ -27,7 +27,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 			$response['message']="videoFile is mandatory.";
 			$response['data']="";
 		} 
-		/* elseif($_FILES['thumbnail']['size'] == 0 && $_FILES['thumbnail']['error'] == 0)
+		/* elseif($_FILES['videoThumbnail']['size'] == 0 && $_FILES['videoThumbnail']['error'] == 0)
 		{
 			$response['status']=false;
 			$response['message']="thumbnail is mandatory.";
@@ -87,10 +87,10 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 					}
 					// Ends
 				}
-				if($_FILES['thumbnail']['size'] > 0 && $_FILES['thumbnail']['error'] == 0)
+				if($_FILES['videoThumbnail']['size'] > 0 && $_FILES['videoThumbnail']['error'] == 0)
 				{
 					/* Image details */
-					$filename = $_FILES["thumbnail"]["name"];
+					$filename = $_FILES["videoThumbnail"]["name"];
 					$file_ext = substr($filename, strripos($filename, '.')); // get file name
 					$allowed_file_types = array('.png','.jpg','.jpeg','.JPG','.JPEG','.PNG');
 					wh_log("filename ".$filename." file_ext - ".$file_ext);
@@ -105,7 +105,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 						if (is_file($myimagefile)) {
 							unlink($myimagefile);
 						}
-						if(move_uploaded_file($_FILES["thumbnail"]["tmp_name"],$imageBaseDirURL . $filename))
+						if(move_uploaded_file($_FILES["videoThumbnail"]["tmp_name"],$imageBaseDirURL . $filename))
 						{ $image_status = true; }
 						else
 						{

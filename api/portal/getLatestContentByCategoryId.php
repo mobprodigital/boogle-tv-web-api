@@ -36,22 +36,43 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 	}
 	else
 	{
-		// Check Portal Name With ContentType exist or not
-		$portalCheck = "SELECT * FROM `portals` WHERE status =1 and `name` ='$portal' and find_in_set($contentType,`content_type`)";
-		$portalCheck_rs = mysqli_query($link,$portalCheck);
-		wh_log("Portal Check Query Executed : ".$portalCheck);
-		if(mysqli_num_rows($portalCheck_rs) > 0)
+	    // Check Portal Name With ContentType exist or not
+		$portalid = portalExist($portal,$link,$contentType);
+		if($portalid)
 		{
-			//Get Portal ID
-			if($portalrow = mysqli_fetch_assoc($portalCheck_rs))
+			if(empty($req_data['categoryId'])) 
 			{
-				$portalid = $portalrow['portal_id'];
-				if(empty($req_data['categoryId'])) 
+				//echo "Get all latest Content From All Categories and content type id";
+				$data = getLatestContent($start,$count,$link,$portalid,$contentType,$videoBaseURL,$imageBaseURL);
+				wh_log("Content Array : ".str_replace("\n"," ", print_r($data, true)));
+				//usort($data, 'sortByView');
+				wh_log("Sorted Final Content Array : ".str_replace("\n"," ", print_r($data, true)));
+				if(!empty($data))
 				{
-					//echo "Get all latest Content From All Categories and content type id";
-					$data = getLatestContent($start,$count,$link,$portalid,$contentType,$videoBaseURL,$imageBaseURL);
+				$response['status']=true;
+				$response['message']="Success";
+				$response['data'] = $data;	
+				} else {
+				$data = array();
+				$response['status']=false;
+				$response['message']="No Content Found.";
+				$response['data'] = $data;	
+				}
+					
+			}
+			else
+			{
+				// Check Array Values
+				$value = check_array_values($req_data['categoryId']);
+				wh_log("Array contains integer values result : ".$value);
+				if($value)
+				{
+					// Array have all integers value.
+					//echo "Get latest Content By Category ID and content type id";
+					$data = getMostLatestContentByCategoryID($req_data['categoryId'],$start,$count,$link,$portalid,$contentType,$videoBaseURL,$imageBaseURL);
 					wh_log("Content Array : ".str_replace("\n"," ", print_r($data, true)));
 					//usort($data, 'sortByView');
+					
 					wh_log("Sorted Final Content Array : ".str_replace("\n"," ", print_r($data, true)));
 					if(!empty($data))
 					{
@@ -64,41 +85,13 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 					$response['message']="No Content Found.";
 					$response['data'] = $data;	
 					}
-						
 				}
 				else
 				{
-					// Check Array Values
-					$value = check_array_values($req_data['categoryId']);
-					wh_log("Array contains integer values result : ".$value);
-					if($value)
-					{
-						// Array have all integers value.
-						//echo "Get latest Content By Category ID and content type id";
-						$data = getMostLatestContentByCategoryID($req_data['categoryId'],$start,$count,$link,$portalid,$contentType,$videoBaseURL,$imageBaseURL);
-						wh_log("Content Array : ".str_replace("\n"," ", print_r($data, true)));
-						//usort($data, 'sortByView');
-						
-						wh_log("Sorted Final Content Array : ".str_replace("\n"," ", print_r($data, true)));
-						if(!empty($data))
-						{
-						$response['status']=true;
-						$response['message']="Success";
-						$response['data'] = $data;	
-						} else {
-						$data = array();
-						$response['status']=false;
-						$response['message']="No Content Found.";
-						$response['data'] = $data;	
-						}
-					}
-					else
-					{
-						$data = array();
-						$response['status']=false;
-						$response['message']="Category Id should be numeric.";
-						$response['data'] = $data;
-					}
+					$data = array();
+					$response['status']=false;
+					$response['message']="Category Id should be numeric.";
+					$response['data'] = $data;
 				}
 			}
 		}

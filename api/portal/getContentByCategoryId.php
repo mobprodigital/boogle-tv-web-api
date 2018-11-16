@@ -57,23 +57,16 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 		if($value)
 		{   
 			// Array have all integers value.
-			//Check Portal Name With ContentType exist or not
-			$portalCheck = "SELECT * FROM `portals` WHERE status =1 and `name` ='$portal' and find_in_set($contentType,`content_type`)";
-			$portalCheck_rs = mysqli_query($link,$portalCheck);
-			wh_log("Portal Check Query Executed : ".$portalCheck);
-			if(mysqli_num_rows($portalCheck_rs) > 0)
+			// Check Portal Name With ContentType exist or not
+			$portalid = portalExist($portal,$link,$contentType);
+			if($portalid)
 			{
-				//Get Portal ID
-				if($portalrow = mysqli_fetch_assoc($portalCheck_rs))
-				{ 
-					$portalid = $portalrow['portal_id'];
-					
-					// Get content By Category Id
-					$data = getContentByCategoryID($contentType,$videoBaseURL,$imageBaseURL,$portalid,$req_data['categoryId'],$start,$count,$link);
-					wh_log("Final Array : ".str_replace("\n"," ", print_r($data, true)));
-					usort($data, 'sortByRecent');
-					wh_log("Sorted Final Array : ".str_replace("\n"," ", print_r($data, true)));
-				}
+				// Get content By Category Id
+				$data = getContentByCategoryID($contentType,$videoBaseURL,$imageBaseURL,$portalid,$req_data['categoryId'],$start,$count,$link);
+				wh_log("Final Array : ".str_replace("\n"," ", print_r($data, true)));
+				usort($data, 'sortByRecent');
+				wh_log("Sorted Final Array : ".str_replace("\n"," ", print_r($data, true)));
+				
 				wh_log("Final Array : ".str_replace("\n"," ", print_r($data, true)));
 				if(!empty($data))
 				{

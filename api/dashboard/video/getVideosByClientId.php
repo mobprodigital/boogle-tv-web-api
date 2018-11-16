@@ -45,7 +45,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 					while($row  = mysqli_fetch_assoc($query_rs))
 					{  
 						//print_r($row);
-						$video_array[] = videoArray($row,$videoBaseURL,$link);
+						$video_array[] = videoArray($row,$imageBaseURL,$videoBaseURL,$link);
 					}
 					if(!empty($video_array))
 					{
