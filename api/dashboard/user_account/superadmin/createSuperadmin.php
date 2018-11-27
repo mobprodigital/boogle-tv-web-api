@@ -13,7 +13,6 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 	if ($check) 
 	{ 
 		$roleid = $check['loginRoleId'];
-		$login_uid = $check['loginUserId'];
 		$res = validateApi($apiKey,$roleid);
 		if($res)
 		{
@@ -136,7 +135,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 							
 							$user_data = array();
 							$response['status']=false;
-							$response['message']="This Email id is already registered with us.";
+							$response['message']="This Emailid is already registered with us.";
 							$response['data']= $user_data;
 						}
 						else
@@ -148,7 +147,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 							$lastName = !empty($lastName) ? "$lastName" : "NULL";
 							$phone = !empty($phone) ? $phone : "NULL";
 							
-							$add_user = "INSERT INTO users (first_name,last_name,email,password,mobile,role,reports_to,client_id,portal_ids,status,insertion_time) VALUES ('$firstName','$lastName','$email','$pwd','$phone',$role,$login_uid,'$clientId','$pids','1',NOW())";
+							$add_user = "INSERT INTO users (first_name,last_name,email,password,mobile,role,client_id,portal_ids,status,insertion_time) VALUES ('$firstName','$lastName','$email','$pwd','$phone',$role,'$clientId','$pids','1',NOW())";
 							$add_user_rs = mysqli_query($link,$add_user);
 							$last_insert_id = mysqli_insert_id($link);
 							wh_log("Add Super Admin User Query - ".$add_user." | Last Insert_id - ".$last_insert_id);

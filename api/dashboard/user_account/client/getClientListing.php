@@ -26,7 +26,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 					while($row  = mysqli_fetch_assoc($query_rs))
 					{  
 						// Get User Details
-						$client_array[] = singleClientArray($row,$link);
+						$client_array[] = singleClientArray($row);
 						//Ends
 					}
 				}

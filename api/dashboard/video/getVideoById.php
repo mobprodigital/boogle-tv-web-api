@@ -64,19 +64,17 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 		else
 		{
 			// Get Video Array By video ID
-			//$query = "SELECT t1.*,t2.content_id,t2.video_url,t2.cover_image_url,t2.content_length,t2.extension,t2.mime FROM content_metadata as t1 LEFT JOIN content_multimedia as t2 ON t1.id = t2.content_id where t1.id = $videoId and uploaded_by = '$loginuid' and t1.content_type ='video' and t1.status = 1 and t1.client_id = $clientId";
-			$query = "SELECT * from `content_metadata` where id = $videoId and `client_id`= $clientId and uploaded_by = '$loginuid' and content_type ='video' and status = 1";  
+			$query = "SELECT t1.*,t2.content_id,t2.video_url,t2.cover_image_url,t2.content_length,t2.extension,t2.mime FROM content_metadata as t1 LEFT JOIN 
+			content_multimedia as t2 ON t1.id = t2.content_id where t1.id = $videoId and uploaded_by = '$loginuid' and t1.content_type ='video' and t1.status = 1 and t1.client_id = $clientId";
 			wh_log("Query - ".$query);
 			$query_rs = mysqli_query($link,$query);
 			if($query_rs)
 			{
 				if(mysqli_num_rows($query_rs) > 0)
 				{
-					while($con_row  = mysqli_fetch_assoc($query_rs))
-					{
-						// Get Content array
-						$video_array[] = videoArray($con_row,$link,$imageBaseURL,$videoBaseURL);
-						// Ends
+					while($row  = mysqli_fetch_assoc($query_rs))
+					{  
+						$video_array = videoArray($row,$imageBaseURL,$videoBaseURL,$link);
 					}
 					if(!empty($video_array))
 					{

@@ -3,7 +3,6 @@ include "../../includes/config.php";
 include "../../includes/functions.php";
 $response = array();
 
-
 if($_SERVER["REQUEST_METHOD"] == "POST")
 {
 	$check = getClientData();

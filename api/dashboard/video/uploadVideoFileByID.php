@@ -108,39 +108,22 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 				// Insert Multimedia Files Of Particular StotyId
 				if($image_status || $video_status)
 				{
-					$check_multimedia = "select * from content_multimedia where content_id = $videoId and content_type ='video' and video_url ='$vidfilename'";
-					$check_multimedia_rs = mysqli_query($link,$check_multimedia);
-					wh_log("Check Content Multimedia Query ".$check_multimedia." count rows - ".mysqli_num_rows($check_multimedia_rs));
-					if(mysqli_num_rows($check_multimedia_rs) > 0)
+					$updatedata = "insert into content_multimedia (content_id,video_url,cover_image_url,content_length,extension,mime,content_type) values ($videoId,'$vidfilename',
+					'$filename','$videoLength','$extension','$videoMime','video')";
+					wh_log("Query executed = ".$updatedata." | Image File - ".$filename." | Video File -".$vidfilename);
+					$updatedata_rs = mysqli_query($link,$updatedata);
+					if($updatedata_rs)
 					{
-						$response['status']=false;
-					    $response['message']="Files Already Exists with This Story.";
+						$response['status']=true;
+						$response['message']="Successfully Uploaded Files";
 						$response['data']="";
 					}
 					else
-					{ 
-					   $updatedata = "insert into content_multimedia (content_id,video_url,cover_image_url,content_length,extension,mime,content_type) values ($videoId,'$vidfilename',
-					   '$filename','$videoLength','$extension','$videoMime','video')";
-					   wh_log("Query executed = ".$updatedata." | Image File - ".$filename." | Video File -".$vidfilename);
-					   $updatedata_rs = mysqli_query($link,$updatedata);
-					   $last_insert_id = mysqli_insert_id($link);
-				       wh_log("Insert Video Data Query - ".$updatedata." | Last Insert_id - ".$last_insert_id);
-					   if($updatedata_rs)
-					   {
-						   $response['status']=true;
-						   $response['message']="Successfully Uploaded Files";
-						   $response['data'] = $last_insert_id;
-					   }
-					   else
-					   {
-						   $response['status']=false;
-						   $response['message']=mysqli_error($link);
-						   $response['data']="";
-					   }
-					} 
-
-
-					
+					{
+						$response['status']=false;
+						$response['message']=mysqli_error($link);
+						$response['data']="";
+					}
 				}
 			}
 			else
