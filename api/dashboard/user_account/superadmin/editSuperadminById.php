@@ -165,7 +165,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 							{
 								$user_data = array();
 								$response['status']=false;
-								$response['message']=mysqli_error($link);
+								$response['message']="Duplicate entry";
 								$response['data']= $user_data;
 							}
 						}

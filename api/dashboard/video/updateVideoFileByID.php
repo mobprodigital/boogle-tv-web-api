@@ -11,6 +11,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 		wh_log("Json In Request : ".str_replace("\n"," ", print_r($_POST, true)));
 
 		$videoId     = mysqli_real_escape_string($link,trim(isset($_POST['videoId']))) ? mysqli_real_escape_string($link,trim($_POST['videoId'])) : '';
+		$contentId     = mysqli_real_escape_string($link,trim(isset($_POST['contentId']))) ? mysqli_real_escape_string($link,trim($_POST['contentId'])) : '';
 		$videoLength = mysqli_real_escape_string($link,trim(isset($_POST['videoLength']))) ? mysqli_real_escape_string($link,trim($_POST['videoLength'])) : '';
 		$extension   = mysqli_real_escape_string($link,trim(isset($_POST['extension']))) ? mysqli_real_escape_string($link,trim($_POST['extension'])) : '';
 		$videoMime         = mysqli_real_escape_string($link,trim(isset($_POST['videoMime']))) ? mysqli_real_escape_string($link,trim($_POST['videoMime'])) : '';
@@ -18,7 +19,13 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 		if(empty($videoId) || $videoId == null)
 		{
 			$response['status']=false;
-			$response['message']="videoId is mandatory.";
+			$response['message']="video Id is mandatory.";
+			$response['data']="";
+		}
+		if(empty($contentId) || $contentId == null)
+		{
+			$response['status']=false;
+			$response['message']="Content Id is mandatory.";
 			$response['data']="";
 		}
 		elseif($_FILES['videoFile']['size'] == 0 && $_FILES['videoFile']['error'] == 0)
@@ -36,7 +43,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 		else
 		{
 			// Check Video Id is present or not 
-			$check_query = "select * from content_metadata where id=$videoId and content_type='video'";
+			$check_query = "select * from content_metadata where id=$contentId and content_type='video'";
 			$check_query_rs = mysqli_query($link,$check_query);
 			wh_log("Check Query ".$check_query." count rows - ".mysqli_num_rows($check_query_rs));
 			if(mysqli_num_rows($check_query_rs) > 0)
@@ -55,7 +62,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 					if (in_array($vidfile_ext,$allowed_video_file_types))
 					{
 						// delete old video file
-						$check_query1 = "select * from content_multimedia where content_id=$videoId";
+						$check_query1 = "select * from content_multimedia where content_id=$contentId and id =$videoId";
 						$check_query_rs1 = mysqli_query($link,$check_query1);
 						wh_log("Check Query ".$check_query1." count rows - ".mysqli_num_rows($check_query_rs1));
 						if(mysqli_num_rows($check_query_rs1) > 0)
@@ -127,7 +134,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 				{
 					if(empty($filename)) { $filename = $row['cover_image_url']; }
 					if(empty($vidfilename)) { $vidfilename = $row['video_url']; }
-					$updatedata = "update content_multimedia set video_url='$vidfilename',cover_image_url='$filename',content_length='$videoLength',extension='$extension',mime='$videoMime' where content_id='$videoId'";
+					$updatedata = "update content_multimedia set video_url='$vidfilename',cover_image_url='$filename',content_length='$videoLength',extension='$extension',mime='$videoMime' where id='$videoId'";
 					wh_log("Query executed = ".$updatedata." | Image File - ".$filename." | Video File -".$vidfilename);
 					$updatedata_rs = mysqli_query($link,$updatedata);
 					if($updatedata_rs)

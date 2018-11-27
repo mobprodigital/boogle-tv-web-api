@@ -44,17 +44,44 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 				wh_log("Check Query ".$check_query." count rows - ".mysqli_num_rows($check_query_rs));
 				if(mysqli_num_rows($check_query_rs) > 0)
 				{
+					// Insert Into Logs
+					if($row  = mysqli_fetch_assoc($check_query_rs))
+					{
+						$name = $row['name'];
+						$email = $row['email'];
+						$mobile = $row['mobile'];
+						$tenure = $row['agreement_tenure'];
+						$create_time = $row['insertion_time'];
+						$insert_logs = "Insert into logs (name,email,mobile,tenure,type,created_on) values ('$name','$email',$mobile,$tenure,'client',$create_time')";
+						$insert_logs_rs = mysqli_query($link,$insert_logs);
+						 //print_r($row);
+					}
+					// Ends
+
 					//Delete Client Details
-					$edit_query = "update clients set status = 0 where client_id = $id";
+					$edit_query = "delete from clients where client_id = $id and status =1";
 					$edit_query_rs = mysqli_query($link,$edit_query);
-					
-					wh_log("Update text Query - ".$edit_query_rs);
+					wh_log("delete client Query - ".$edit_query);
 					if($edit_query_rs)
 					{
-						$arr = array();
-						$response['status']=true;
-						$response['message']="Successfully Deleted.";
-						$response['data']=$arr;
+						// delete users by clientid
+						$edit_query1 = "delete from users where client_id = $id and status =1";
+					    $edit_query_rs1 = mysqli_query($link,$edit_query1);
+						wh_log("delete user by client id text Query - ".$edit_query1);
+						if($edit_query_rs1)
+						{
+							$arr = array();
+							$response['status']=true;
+							$response['message']="Successfully Deleted.";
+							$response['data']=$arr;
+						}
+						else
+						{
+							$arr = array();
+							$response['status']=false;
+							$response['message']=mysqli_error($link);
+							$response['data']=$arr;
+						}
 					}
 					else
 					{

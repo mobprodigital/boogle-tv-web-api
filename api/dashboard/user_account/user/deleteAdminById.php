@@ -9,13 +9,13 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 	if ($check) 
 	{
         $login_uid = $check['loginUserId'];
-        wh_log("Login UId -".$login_uid);
+        $clientId = $check['loginClientId'];
+        wh_log("Login UId -".$login_uid." | Client Id -".$login_clientid);
 
 		$req_json = json_decode(file_get_contents("php://input"), true);
         wh_log("Json In Request : ".str_replace("\n"," ", print_r($req_json, true)));
         
         $action = mysqli_real_escape_string($link,trim(isset($req_json['action']))) ? mysqli_real_escape_string($link,trim($req_json['action'])) :'';
-        $clientId = mysqli_real_escape_string($link,trim(isset($req_json['clientId']))) ? mysqli_real_escape_string($link,trim($req_json['clientId'])) :'';
         $id = mysqli_real_escape_string($link,trim(isset($req_json['id']))) ? mysqli_real_escape_string($link,trim($req_json['id'])) :'';
 
         if(empty($action) || $action == null)
@@ -24,20 +24,6 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
             $response['status']=false;
             $response['message']="Action is mandatory.";
             $response['data'] = $user_array;
-        }
-        elseif(empty($clientId) || $clientId == null)
-        {
-            $user_array = array();
-            $response['status']=false;
-            $response['message']="clientId is mandatory.";
-            $response['data'] = $user_array;
-        }
-        elseif(!is_numeric($clientId))
-        {
-            $user_array = array();
-            $response['status']=false;
-            $response['message']="Allowed only numbers in clientId parameter";
-            $response['data']=$user_array;
         }
         elseif(empty($id) || $id == null)
         {
@@ -78,12 +64,12 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
                     // Check id is present or not in users table
                     $check_query = "select * from users WHERE uid = $id and role = $roleId and status = 1 and reports_to = $login_uid and client_id =$clientId";
                     $check_query_rs = mysqli_query($link,$check_query);
-                    wh_log("Action - ".$action." | Check Query - ".$check_query." | count rows - ".mysqli_num_rows($check_query_rs));
+                    wh_log(" Action -".$action." | Check Id is present or not Query ".$check_query." count rows - ".mysqli_num_rows($check_query_rs));
                     if(mysqli_num_rows($check_query_rs) > 0)
                     {
                         $check_query1 = "select * from users WHERE status = 1 and reports_to = $id and client_id =$clientId";
                         $check_query_rs1 = mysqli_query($link,$check_query1);
-                        wh_log("Action - ".$action." | Check Query For Count Associated users With Superadmin - ".$check_query1." | count rows - ".mysqli_num_rows($check_query_rs1));
+                        wh_log(" Action -".$action." | Check Users associated with admin Query ".$check_query1." count rows - ".mysqli_num_rows($check_query_rs1));
                         if(mysqli_num_rows($check_query_rs1) > 0)
                         {
                             $user_array = array();
@@ -93,30 +79,30 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
                         }
                         else
                         {
-                            // Insert Into Logs
-                            if($row  = mysqli_fetch_assoc($check_query_rs))
-                            {
-                                $name = $row['first_name'].' '.$row['last_name'];
-                                $email = $row['email'];
-                                $mobile = $row['mobile'];
-                                $role = $row['role'];
-                                $create_time = $row['insertion_time'];
-                                echo $insert_logs = "Insert into logs (name,email,mobile,role,type,created_on) values ('$name','$email',$mobile,$role,'superadmin','$create_time')";
-                                $insert_logs_rs = mysqli_query($link,$insert_logs);
-                                //print_r($row);
-                            }
-                            // Ends
+                             // Insert Into Logs
+                             if($row  = mysqli_fetch_assoc($check_query_rs))
+                             {
+                                 $name = $row['first_name'].' '.$row['last_name'];
+                                 $email = $row['email'];
+                                 $mobile = $row['mobile'];
+                                 $role = $row['role'];
+                                 $create_time = $row['insertion_time'];
+                                 echo $insert_logs = "Insert into logs (name,email,mobile,role,'type',created_on) values ('$name','$email',$mobile,$role,'admin','$create_time')";
+                                 $insert_logs_rs = mysqli_query($link,$insert_logs);
+                                 //print_r($row);
+                             }
+                             // Ends
 
-                            //echo "Delete Particular Superadmin by clientid";
-                            //$query = "update users set status =0 WHERE uid = $id and reports_to = $login_uid and client_id = $clientId and status = 1 ";
+                            //echo "Delete Particular Admin by clientid";
                             $query = "delete from users where uid = $id and reports_to = $login_uid and client_id = $clientId and status = 1";
-                            wh_log("Action - ".$action." | Delete All Users associated superadmin Query - ".$query);
+                            //$query = "update users set status =0 WHERE uid = $id and reports_to = $login_uid and client_id = $clientId and status = 1 ";
+                            wh_log(" Action -".$action." | Delete Particular Admin by clientid Query - ".$query);
                             $query_rs = mysqli_query($link,$query);
                             if($query_rs)
                             {
                                 $user_array = array();
                                 $response['status']=true;
-                                $response['message']="Super Admin Successfully Deleted.";
+                                $response['message']="Admin Successfully Deleted.";
                                 $response['data']= $user_array; 
                             }
                             else
@@ -125,7 +111,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
                                 $response['status']=false;
                                 $response['message']=mysqli_error($link);
                                 $response['data'] = $user_array;
-                            } 
+                            }
                         }
                     }
                     else
@@ -154,21 +140,21 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
                         $mobile = $row['mobile'];
                         $role = $row['role'];
                         $create_time = $row['insertion_time'];
-                        $insert_logs = "Insert into logs (name,email,mobile,role,type,created_on) values ('$name','$email',$mobile,$role,'superadmin',$create_time')";
+                        $insert_logs = "Insert into logs (name,email,mobile,role,'type',created_on) values ('$name','$email',$mobile,$role,'admin','$create_time')";
                         $insert_logs_rs = mysqli_query($link,$insert_logs);
                         //print_r($row);
                     }
                 }
                 //Ends
 
-                //echo "Delete all Superadmin by clientid";
-                $query = "delete from users where uid = $id and reports_to = $login_uid and client_id = $clientId and status = 1";
-                wh_log("Action - ".$action." | Superadmin delete Query - ".$query);
+                //echo "Delete admin and its hierarchy by clientid";
+                $query = "delete from users WHERE uid = $id and reports_to = $login_uid and client_id = $clientId and status = 1 ";
+                wh_log(" Action -".$action." | Delete admin and its hierarchy by clientid Query - ".$query);
                 $query_rs = mysqli_query($link,$query);
                 if($query_rs)
                 {
                     $query1 = "delete from users WHERE reports_to = $id and client_id =$clientId and status = 1";
-                    wh_log("Action - ".$action." | Superadmin and its users delete Query - ".$query1);
+                    wh_log("update Query1 - ".$query1);
                     $query_rs1 = mysqli_query($link,$query1);
                     if($query_rs1)
                     {

@@ -24,7 +24,8 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 			wh_log("Json In Request : ".str_replace("\n"," ", print_r($req_json, true)));
 			
 			$roleId = mysqli_real_escape_string($link,trim(isset($req_json['roleId']))) ? mysqli_real_escape_string($link,trim($req_json['roleId'])) :'0';
-			
+			$id = mysqli_real_escape_string($link,trim(isset($req_json['userId']))) ? mysqli_real_escape_string($link,trim($req_json['userId'])) :'';
+
 			if(empty($roleId) || $roleId == null)
 			{
 				$user_array = array();
@@ -39,10 +40,24 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 				$response['message']="Allowed only numbers in Role Id parameter";
 				$response['data']=$user_array;
 			}
+			elseif(empty($id) || $id == null)
+			{
+				$Client_data = array();
+				$response['status']=false;
+				$response['message']="User id is mandatory.";
+				$response['data'] = $Client_data;
+			}
+			elseif(!is_numeric($id))
+			{
+				$Client_data = array();
+				$response['status']=false;
+				$response['message']="Allowed only numbers in user Id parameter";
+				$response['data']=$Client_data;
+			}
 			else
 			{
-				$query = "SELECT * FROM users WHERE reports_to = $login_uid and client_id = $login_clientid and role = $roleId and status = 1 and uid != $login_uid";
-				wh_log("ClientId - ".$clientId." | Super Admin Listing Select query -".$query);
+				$query = "SELECT * FROM users WHERE uid = $id and reports_to = $login_uid and client_id = $login_clientid and role = $roleId and status = 1";
+				wh_log("ClientId - ".$login_clientid." | User By Id Select query -".$query);
 				$query_rs = mysqli_query($link,$query);
 				if($query_rs)
 				{
@@ -59,7 +74,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 					{
 						$user_array = array();
 						$response['status']=false;
-						$response['message']= "No Users available";
+						$response['message']= "No Data Found";
 						$response['data'] = $user_array;
 					}
 					else

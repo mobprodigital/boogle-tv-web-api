@@ -56,8 +56,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 			else
 			{
 				// Text Listing By Client ID
-				$query = "SELECT t1.*,t2.content_id,t2.cover_image_url FROM news_metadata as t1 LEFT JOIN 
-				content_multimedia as t2 ON t1.id = t2.content_id where t1.`client_id`= $clientId and t1.uploaded_by = '$uploadedBy' and t1.content_type ='text' and t1.status = 1";
+				$query = "SELECT * FROM news_metadata where`client_id`= $clientId and uploaded_by = '$uploadedBy' and content_type ='text' and status = 1";
 				
 				wh_log("Text Meta Data And Multimedia Query - ".$query);
 				$query_rs = mysqli_query($link,$query);
@@ -67,7 +66,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 					{
 						while($row  = mysqli_fetch_assoc($query_rs))
 						{  
-							$text_array[] = textArray($row,$imageBaseURL,$link);
+							$text_array[] = textArray($row,$imageBaseURL,$link,$videoBaseURL);
 						}
 						if(!empty($text_array))
 						{

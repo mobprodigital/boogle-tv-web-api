@@ -186,7 +186,7 @@ function send_email($email,$msg,$subject)
 
 //1=Owner, 2=Superadmin, 3=Admin, 4=User
 $record = array("1"=>array("DelPor1","EditPor","getPor","LisPor","NewPor","Delcl","EditCl","getCl","LisCl",
-"SetCl","setSA","DelSA","EditSA","getPorListByClId","SAById","SAList"),
+"SetCl","setSA","DelSA","EditSA","getPorListByClId","SAById","SAList","LisCat","DelCat","DeactivateCl"),
  "2"=>array("LisPor","getPor","DelText","DelTextCatById","EditTextCatById","EditTextById","TextById",
  "TextCat","TextCatById","TextListByUid","SetTextCat","UplText"),
  "4"=>array("DelText","EditTextCatById","EditTextById","TextById","TextCat","TextCatById",

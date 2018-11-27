@@ -16,14 +16,15 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 		//$res = validateApi($apiKey,$roleid);
 		/* if($res)
 		{ */
-			$login_uid = $check['loginUserId'];
 			$login_clientid = $check['loginClientId'];
 			wh_log("ClientId - ".$login_clientid." | Login UId -".$login_uid);
 
 			$req_json = json_decode(file_get_contents("php://input"), true);
 			wh_log("Json In Request : ".str_replace("\n"," ", print_r($req_json, true)));
 			
-			$roleId = mysqli_real_escape_string($link,trim(isset($req_json['roleId']))) ? mysqli_real_escape_string($link,trim($req_json['roleId'])) :'0';
+            $roleId = mysqli_real_escape_string($link,trim(isset($req_json['roleId']))) ? mysqli_real_escape_string($link,trim($req_json['roleId'])) :'';
+            $adminId = mysqli_real_escape_string($link,trim(isset($req_json['adminId']))) ? mysqli_real_escape_string($link,trim($req_json['adminId'])) :'';
+            
 			
 			if(empty($roleId) || $roleId == null)
 			{
@@ -38,11 +39,25 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 				$response['status']=false;
 				$response['message']="Allowed only numbers in Role Id parameter";
 				$response['data']=$user_array;
+            }
+            if(empty($adminId) || $adminId == null)
+			{
+				$user_array = array();
+				$response['status']=false;
+				$response['message']="Admin Id is mandatory.";
+				$response['data'] = $user_array;
+			}
+			elseif(!is_numeric($adminId))
+			{
+				$user_array = array();
+				$response['status']=false;
+				$response['message']="Allowed only numbers in Admin Id parameter";
+				$response['data']=$user_array;
 			}
 			else
 			{
-				$query = "SELECT * FROM users WHERE reports_to = $login_uid and client_id = $login_clientid and role = $roleId and status = 1 and uid != $login_uid";
-				wh_log("ClientId - ".$clientId." | Super Admin Listing Select query -".$query);
+				$query = "SELECT * FROM users WHERE reports_to = $adminId and client_id = $login_clientid and role = $roleId and status = 1";
+				wh_log("ClientId - ".$login_clientid." | Admin wise user Listing Select query -".$query);
 				$query_rs = mysqli_query($link,$query);
 				if($query_rs)
 				{

@@ -26,7 +26,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 					while($row  = mysqli_fetch_assoc($query_rs))
 					{  
 						// Get Porat Details
-						$portal_array[] = singlePortalArray($row);
+						$portal_array[] = singlePortalArray($row,$link);
 						//Ends
 					}
 				}

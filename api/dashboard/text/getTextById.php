@@ -72,8 +72,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 			else
 			{
 				// Get Text Array By text ID
-				$query = "SELECT t1.*,t2.content_id,t2.cover_image_url FROM news_metadata as t1 LEFT JOIN 
-				content_multimedia as t2 ON t1.id = t2.content_id where t1.id = $textId and uploaded_by = '$loginuid' and t1.content_type ='text' and t1.status = 1 and t1.client_id = $client_id";
+				$query = "SELECT * FROM news_metadata where id = $textId and uploaded_by = '$loginuid' and content_type ='text' and status = 1 and client_id = $client_id";
 				wh_log("Query - ".$query);
 				$query_rs = mysqli_query($link,$query);
 				if($query_rs)
@@ -82,7 +81,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 					{
 						while($row  = mysqli_fetch_assoc($query_rs))
 						{  
-							$text_array = textArray($row,$imageBaseURL,$link);
+							$text_array = textArray($row,$imageBaseURL,$link,$videoBaseURL);
 						}
 						if(!empty($text_array))
 						{
