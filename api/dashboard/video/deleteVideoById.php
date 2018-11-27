@@ -9,15 +9,46 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 	if ($check) 
 	{
 		$client_id = $check['loginClientId'];
+		$login_uid = $check['loginUserId'];
+
 		$clientId = mysqli_real_escape_string($link,trim(isset($client_id))) ? mysqli_real_escape_string($link,trim($client_id)) :'';
+		$loginuid = mysqli_real_escape_string($link,trim(isset($login_uid))) ? mysqli_real_escape_string($link,trim($login_uid)) :'';
 		
 		$req_json = json_decode(file_get_contents("php://input"), true);
 		wh_log("Json In Request : ".str_replace("\n"," ", print_r($req_json, true)));
 		
 		$id = mysqli_real_escape_string($link,trim(isset($req_json['videoId']))) ? mysqli_real_escape_string($link,trim($req_json['videoId'])) :'';
 		wh_log("video ID - ".$id." | Cookie client id -".$clientId);
-			
-		if((empty($id) || $id == null))
+		
+		if(empty($clientId) || $clientId == null)
+		{
+			$video_array = array();
+			$response['status']=false;
+			$response['message']="clientId is mandatory.";
+			$response['data'] = $video_array;
+		}
+		elseif(!is_numeric($clientId))
+		{
+			$arr = array();
+			$response['status']=false;
+			$response['message']="Allowed only numbers in clientId parameter";
+			$response['data']=$arr;
+		}
+		elseif(empty($loginuid) || $loginuid == null)
+		{
+			$video_array = array();
+			$response['status']=false;
+			$response['message']="loginuid is mandatory.";
+			$response['data'] = $video_array;
+		}
+		elseif(!is_numeric($loginuid))
+		{
+			$arr = array();
+			$response['status']=false;
+			$response['message']="Allowed only numbers in loginuid parameter";
+			$response['data']=$arr;
+		}
+		elseif((empty($id) || $id == null))
 		{
 			$arr = array();
 			$response['status']=false;
@@ -34,13 +65,13 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 		else
 		{
 			// Check video id is present or not
-			$check_query = "select * from content_metadata where id=$id and content_type ='video' and status=1 and client_id = $clientId";
+			$check_query = "select * from content_metadata where id=$id and uploaded_by = '$loginuid' and content_type ='video' and status=1 and client_id = $clientId";
 			$check_query_rs = mysqli_query($link,$check_query);
 			wh_log("Check Query ".$check_query." count rows - ".mysqli_num_rows($check_query_rs));
 			if(mysqli_num_rows($check_query_rs) > 0)
 			{
 				//Delete Video Details
-				$edit_query = "update content_metadata set status = '0' where id = '$id' and client_id = $clientId and content_type ='video'";
+				$edit_query = "update content_metadata set status = '0' where id = '$id' and uploaded_by = '$loginuid' and client_id = $clientId and content_type ='video'";
 				$edit_query_rs = mysqli_query($link,$edit_query);
 				
 				wh_log("Update Video Query - ".$edit_query_rs);

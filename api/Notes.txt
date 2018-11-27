@@ -1,0 +1,32 @@
+Owner Login ----> Client Id ----> Super admins listing
+Two Check boxes ---->
+1) Delete By Id
+   1)Firstly check Superadmin is associated with some users/admins. 
+   2)Move all his/her admins & users to other super admin. 
+   3)Delete 
+2) Delete All + Hierarchy	
+   1)Delete that particular superadmin and its accosiated admins and users (Delete full hierarchy) 
+   
+   
+Super Admin Login ----> Admin Listing ---->
+Two Check Boxes ---->
+1) Delete by Id + hierarchy
+   1) Firstly check admin is associated with some users.
+   2)Move all his/her users to other admin.
+   3)Delete
+2) Delete all + hierrachy
+   1)Delete particular admin and its associated users.(Delete full hierarchy)
+ 
+Moving Concept ---->
+1)User Listing Of Particular Admin (From allocate user to others) ----> Per user show admin listing ----> Allocate User to Particluar admin ----> Allocated
+2)Now delete that admin.
+
+Admin Login ----> Users Listing ---->
+One Check Boxe ---->
+1) Delete by Id
+   1) Delete
+
+   
+   
+   
+ 

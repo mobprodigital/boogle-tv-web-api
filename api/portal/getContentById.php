@@ -62,7 +62,8 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 			elseif($contentType == 4) { $dataTable = 'news_metadata'; $type = 'text'; $vpath = $videoBaseURL; $ipath = $imageBaseURL;} */
 			
 			// Get Content By Id
-			$getData = "SELECT t1.*,t2.content_id,t2.video_url,t2.cover_image_url,t2.content_length,t2.extension,t2.mime FROM $dataTable as t1 LEFT JOIN content_multimedia as t2 ON t1.id = t2.content_id where find_in_set($portalid,t1.`portal_ids`) and t1.id = $contentId and t1.content_type ='".$carr['type']."' and t1.status = 1";
+			$getData = "SELECT * FROM $dataTable where find_in_set($portalid,`portal_ids`) and id = $contentId and content_type ='".$carr['type']."' and status = 1";
+			
 			wh_log("Get Content Portal wise Query Executed : ".$getData);
 			$getData_rs = mysqli_query($link,$getData);
 			if($getData_rs)
@@ -73,7 +74,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 					{  
 						//$source = 'portal'; 
 						if($contentType == 2) { $data[] = portalVideoArray($row,$carr['ipath'],$carr['vpath'],$link);}
-						elseif($contentType == 4) { $data[] = portalTextArray($row,$carr['ipath'],$link); }
+						elseif($contentType == 4) { $data[] = portalTextArray($row,$carr['ipath'],$carr['vpath'],$link); }
 					}
 					if(!empty($data))
 					{

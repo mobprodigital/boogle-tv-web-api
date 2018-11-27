@@ -1,6 +1,69 @@
 <?php
 /************************** Common Function For Client Array *********************************************/
-function videoArray($row,$imageBaseURL,$videoBaseURL,$link)
+function videoArray($con_row,$link,$imageBaseURL,$videoBaseURL)
+{
+	$conid = $con_row['id'];
+	$video_date = explode(' ',$con_row['insertion_time']);
+	$insertion_time = date("d/m/Y", strtotime($video_date[0]));
+			
+	// Convert comma seperated strings to array
+	if(!empty($con_row['tags'])) { $tags = comma_separated_to_array($con_row['tags']); } else { $tags = array();}
+	if(!empty($con_row['country'])) { $country = comma_separated_to_array($con_row['country']); }
+
+	// Get Portal Names
+	if(!empty($con_row['portal_ids']))
+	{ 
+		$portalids = $con_row['portal_ids'];
+		$portal_array = getPortalArrayByIds($portalids,$link);
+	}
+	if(empty($portal_array)) { $portal_array = array(); }
+	// Ends
+	
+	// Fetch Category Array
+	if(!empty($con_row['cat_id']))
+	{ 
+		$cat_id = $con_row['cat_id'];
+		$cat_array = getCategoryArrayByIds($cat_id,$link);
+	}
+	if(empty($cat_array)) { $cat_array = array(); }
+	//Ends
+	
+	// get multimedia array
+	$multimedia_array = MultimediaContentarray($conid,$imageBaseURL,$videoBaseURL,$link);
+	if(empty($multimedia_array)) { $multimedia_array = array(); }
+	// ends
+	
+	
+	$con_array = array("videoId"=>$con_row['id'],"categoryId"=>$cat_array,"clientId"=>$con_row['client_id'],"portalId"=>$portal_array,"title"=>$con_row['title'],"videoTags"=>$tags,"videoDate"=>$insertion_time,"language"=>$con_row['language'],"description"=>$con_row['description'],"minAgeReq"=>$con_row['min_age_req'],"broadcasterName"=>$con_row['broadcaster_name'],"type"=>$con_row['type'],"currentAvailability"=>$con_row['content_availability'],"platform"=>$con_row['platform'],"adult"=>$con_row['adult'],"downloadRights"=>$con_row['download_rights'],"internationalRights"=>$con_row['intrernational_rights'],"genere"=>$con_row['genre'],"director"=>$con_row['director'],"producer"=>$con_row['producer'],"writer"=>$con_row['writer'],"musicDirector"=>$con_row['music_director'],"productionHouse"=>$con_row['production_house'],"actor"=>$con_row['actor'],"singer"=>$con_row['singer'],"country"=>$country,"multimedia"=>$multimedia_array);
+	wh_log("content_temp Array : ".str_replace("\n"," ", print_r($con_array, true)));
+    return $con_array;
+}
+function MultimediaContentarray($conid,$imageBaseURL,$videoBaseURL,$link)
+{
+	$data_qr = "select * from content_multimedia where content_id = $conid and content_type ='video'";
+	wh_log("Content Multimedia Query - ".$data_qr);
+	$data_qr_rs = mysqli_query($link,$data_qr);
+	if($data_qr_rs)
+	{
+		if(mysqli_num_rows($data_qr_rs) > 0)
+		{
+			while($mul_row  = mysqli_fetch_assoc($data_qr_rs))
+			{
+				if(!empty($mul_row['video_url'])) { $videoUrl = $videoBaseURL.'/'.$mul_row['video_url']; }
+				if(!empty($mul_row['cover_image_url'])) { $imageUrl = $imageBaseURL.'/'.$mul_row['cover_image_url']; } else { $imageUrl = $imageBaseURL.'/default.jpg';}
+				
+				$mul_array[]= array("multimediaId"=>$mul_row['id'],"videoUrl"=>$videoUrl,"videoLength"=>$mul_row['content_length'],"extension"=>$mul_row['extension'],"videoMime"=>$mul_row['mime'],"coverImage"=>array("original"=>$imageUrl,"large"=>"","medium"=>"","small"=>""));
+			}
+			wh_log("Multimedia Array : ".str_replace("\n"," ", print_r($mul_array, true)));
+			return $mul_array;
+		}
+	}
+}
+
+
+
+
+/* function videoArray($row,$imageBaseURL,$videoBaseURL,$link)
 {
 	if(!empty($row['video_url'])) { $videoUrl = $videoBaseURL.'/'.$row['video_url']; }
 	if(!empty($row['cover_image_url'])) { $imageUrl = $imageBaseURL.'/'.$row['cover_image_url']; } else { $imageUrl = $imageBaseURL.'/default.jpg';}
@@ -34,20 +97,27 @@ function videoArray($row,$imageBaseURL,$videoBaseURL,$link)
 	
 	wh_log("Video Content Array : ".str_replace("\n"," ", print_r($video_temp_array, true)));
     return $video_temp_array;
-} 
+} */
 
 
-function singleClientArray($row)
+function singleClientArray($row,$link)
 {
-	// Make Poratlids in array format
-	$pids = explode(",",$row['portal_ids']);
+	// Get Portal Names
+	if(!empty($row['portal_ids']))
+	{ 
+		$portalids = $row['portal_ids'];
+		$portal_array = getPortalArrayByIds($portalids,$link);
+	}
+	if(empty($portal_array)) { $portal_array = array(); }
 	// Ends
-	$client_temp= array("clientId"=>$row['client_id'],"clientName"=>$row['name'],"email"=>$row['email'],"phone"=>$row['mobile'],"domain"=>$row['url'],"address"=>$row['address'],"skypeId"=>$row['skype_id'],"assignedPortals"=>$pids,"billingCycle"=>$row['billing_cycle'],"agreementTenure"=>$row['agreement_tenure']);
+    
+	$client_temp= array("clientId"=>$row['client_id'],"clientName"=>$row['name'],"email"=>$row['email'],"phone"=>$row['mobile'],"domain"=>$row['url'],"address"=>$row['address'],"skypeId"=>$row['skype_id'],"assignedPortals"=>$portal_array,"billingCycle"=>$row['billing_cycle'],"agreementTenure"=>$row['agreement_tenure']);
 	wh_log("Client Array : ".str_replace("\n"," ", print_r($client_temp, true)));
     return $client_temp;
 }
 function getSingleClientData($id,$link)
 {
+	//print_r($id);
 	$clientList = "SELECT * FROM `clients` where client_id ='$id' and status =1";
 	$clientList_rs = mysqli_query($link,$clientList);
 
@@ -56,10 +126,11 @@ function getSingleClientData($id,$link)
 	{
 		while($row  = mysqli_fetch_assoc($clientList_rs))
 		{  
-			$client_array = singleClientArray($row);
+			$client_array = singleClientArray($row,$link);
 		}
 		
 	}
+	
 	wh_log("Client Array : ".str_replace("\n"," ", print_r($client_array, true)));
 	return $client_array;
 }
@@ -68,6 +139,7 @@ function getSingleClientData($id,$link)
 /************************** Common Function For User Array *********************************************/
 function singleUserArray($row,$link)
 {
+	//print_r($row);
 	// Fetching Roles Details
 	if(!empty($row['role']))
 	{ 
@@ -96,7 +168,7 @@ function singleUserArray($row,$link)
 	//Ends
 	
 	// Fetch Client Details
-	$array = getSingleClientData($pids,$link);
+	$array = getSingleClientData($row['client_id'],$link);
 	//Ends
 	
 	// Fetch Portal Details
@@ -213,9 +285,27 @@ function getPortalDataById($id,$link)
 
 
 /************************************ Category Details **********************************************************/
+function getCategoryListing($link)
+{
+	$catList = "SELECT * FROM `category` where status =1";
+	$catList_rs = mysqli_query($link,$catList);
+	wh_log("Category Listing Query - ".$catList." | Rows Found -- ".mysqli_num_rows($catList_rs));
+	if(mysqli_num_rows($catList_rs) > 0)
+	{
+		while($row  = mysqli_fetch_assoc($catList_rs))
+		{  
+			$cat_array[] = singleCategoryArray($row,$link);
+		}
+		
+	}
+	wh_log("Category Array : ".str_replace("\n"," ", print_r($cat_array, true)));
+	return $cat_array;
+
+}
 function singleCategoryArray($row,$link)
 { 
-	$cat_temp = array("categoryId"=>$row['id'],"categoryName"=>$row['cat_name']);
+	if(empty ($row['portal_ids'])) { $portal = 0; } else { $portal = substr_count( $row['portal_ids'], ",") +1 ; }
+	$cat_temp = array("categoryId"=>$row['id'],"categoryName"=>$row['cat_name'],"portalCount"=>$portal);
 	wh_log("Category Temp Array : ".str_replace("\n"," ", print_r($cat_temp, true)));
 	//print_r($cat_temp);
     return $cat_temp;
@@ -256,8 +346,9 @@ function getCategoryArrayByIds($cat_id,$link)
 	}
 }
 /********************************** Ends ***************************************************************************/
-function textArray($row,$imageBaseURL,$link)
+function textArray($row,$imageBaseURL,$link,$videoBaseURL)
 {
+	$conid = $row['id'];
 	if(!empty($row['cover_image_url'])) { $imageUrl = $imageBaseURL.'/'.$row['cover_image_url']; } else { $imageUrl = $imageBaseURL.'/default.jpg';}
 	
 	$news_date = explode(' ',$row['insertion_time']);
@@ -287,8 +378,13 @@ function textArray($row,$imageBaseURL,$link)
 	} else { $cat_ids = array();}
     if(empty($cat_array)) { $cat_array = array(); }
 	//Ends
+	
+	// get multimedia array
+	$multimedia_array = MultimediaContentarray($conid,$imageBaseURL,$videoBaseURL,$link);
+	if(empty($multimedia_array)) { $multimedia_array = array(); }
+	// ends
 
-	$text_temp_array = array("textId"=>$row['id'],"categoryId"=>$cat_array,"clientId"=>$row['client_id'],"portalId"=>$portal_array,"title"=>$row['title'],"newsDate"=>$insertion_time,"postTime"=>$news_post_time,"language"=>$row['language'],"description"=>$row['description'],"tags"=>$row['tags'],"country"=>$country,"city"=>$row['city'],"author"=>$row['author'],"thumbnail"=>$imageUrl,);
+	$text_temp_array = array("textId"=>$row['id'],"categoryId"=>$cat_array,"clientId"=>$row['client_id'],"portalId"=>$portal_array,"title"=>$row['title'],"newsDate"=>$insertion_time,"postTime"=>$news_post_time,"language"=>$row['language'],"description"=>$row['description'],"tags"=>$row['tags'],"country"=>$country,"city"=>$row['city'],"author"=>$row['author'],"thumbnail"=>$imageUrl,"multimedia"=>$multimedia_array);
 	wh_log("Text Content Array : ".str_replace("\n"," ", print_r($text_temp_array, true)));
     return $text_temp_array;
 } 

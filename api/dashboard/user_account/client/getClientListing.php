@@ -3,48 +3,61 @@ include "../../../../includes/config.php";
 include "../../../../includes/functions.php";
 $response = array();
 
+/* Validate Api */
+$apiKey = "LisCl";
+/* Ends */
+
 if($_SERVER["REQUEST_METHOD"] == "POST")
 {
 	$check = getClientData();
 	if ($check) 
 	{
-		$query = "SELECT * FROM clients WHERE status = '1'";
-		wh_log("Query - ".$query);
-		$query_rs = mysqli_query($link,$query);
-		if($query_rs)
+		$roleid = $check['loginRoleId'];
+		$res = validateApi($apiKey,$roleid);
+		if($res)
 		{
-			if(mysqli_num_rows($query_rs) > 0)
+			$query = "SELECT * FROM clients WHERE status = '1'";
+			wh_log("Query - ".$query);
+			$query_rs = mysqli_query($link,$query);
+			if($query_rs)
 			{
-				while($row  = mysqli_fetch_assoc($query_rs))
-				{  
-					// Get User Details
-					$client_array[] = singleClientArray($row);
-					//Ends
+				if(mysqli_num_rows($query_rs) > 0)
+				{
+					while($row  = mysqli_fetch_assoc($query_rs))
+					{  
+						// Get User Details
+						$client_array[] = singleClientArray($row,$link);
+						//Ends
+					}
 				}
-			}
-			if(empty($client_array))
-			{
-				$client_array = array();
-				$response['status']=false;
-				$response['message']= "No Clients available";
-				$response['data'] = $client_array;
+				if(empty($client_array))
+				{
+					$client_array = array();
+					$response['status']=false;
+					$response['message']= "No Clients available";
+					$response['data'] = $client_array;
+				}
+				else
+				{
+					$response['status']=true;
+					$response['message']= "Success";
+					$response['data'] = $client_array;
+				}
+				
 			}
 			else
 			{
-				$response['status']=true;
-				$response['message']= "Success";
+				$client_array = array();
+				$response['status']=false;
+				$response['message']=mysqli_error($link);
 				$response['data'] = $client_array;
 			}
-			
 		}
 		else
 		{
-			$client_array = array();
-			$response['status']=false;
-			$response['message']=mysqli_error($link);
-			$response['data'] = $client_array;
+			header('HTTP/1.1 400 Bad Request', true, 400);
+			die;
 		}
-		
 	}
 	else
 	{

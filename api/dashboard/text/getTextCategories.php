@@ -3,44 +3,59 @@ include "../../../includes/config.php";
 include "../../../includes/functions.php";
 $response = array();
 $content_type_id = 4;
+
+/* Validate Api */
+$apiKey = "TextCat";
+/* Ends */
+
 if($_SERVER["REQUEST_METHOD"] == "POST")
 {
 	$check = getClientData();
 	if ($check) 
 	{ 
-		$query = "SELECT * FROM category WHERE status = 1 and content_type_id= $content_type_id";
-		wh_log("Query - ".$query);
-		$query_rs = mysqli_query($link,$query);
-		if($query_rs)
+		$roleid = $check['loginRoleId'];
+		$res = validateApi($apiKey,$roleid);
+		if($res)
 		{
-			if(mysqli_num_rows($query_rs) > 0)
+			$query = "SELECT * FROM category WHERE status = 1 and content_type_id= $content_type_id";
+			wh_log("Query - ".$query);
+			$query_rs = mysqli_query($link,$query);
+			if($query_rs)
 			{
-				while($row  = mysqli_fetch_assoc($query_rs))
-				{  
-					$cat_array[] = singleCategoryArray($row,$link);
+				if(mysqli_num_rows($query_rs) > 0)
+				{
+					while($row  = mysqli_fetch_assoc($query_rs))
+					{  
+						$cat_array[] = singleCategoryArray($row,$link);
+					}
 				}
-			}
-			if(empty($cat_array))
-			{
-				$cat_array = array();
-				$response['status']=false;
-				$response['message']= "No Sub Categories available";
-				$response['data'] = $cat_array;
+				if(empty($cat_array))
+				{
+					$cat_array = array();
+					$response['status']=false;
+					$response['message']= "No Sub Categories available";
+					$response['data'] = $cat_array;
+				}
+				else
+				{
+					$response['status']=true;
+					$response['message']= "Success";
+					$response['data'] = $cat_array;
+				}
+				
 			}
 			else
 			{
-				$response['status']=true;
-				$response['message']= "Success";
+				$cat_array = array();
+				$response['status']=false;
+				$response['message']=mysqli_error($link);
 				$response['data'] = $cat_array;
 			}
-			
 		}
 		else
 		{
-			$cat_array = array();
-			$response['status']=false;
-			$response['message']=mysqli_error($link);
-			$response['data'] = $cat_array;
+			header('HTTP/1.1 400 Bad Request', true, 400);
+			die;
 		}
 	}
 	else

@@ -3,72 +3,87 @@ include "../../../includes/config.php";
 include "../../../includes/functions.php";
 $response = array();
 $content_type_id = 4;
+
+/* Validate Api */
+$apiKey = "TextCatById";
+/* Ends */
+
 if($_SERVER["REQUEST_METHOD"] == "POST")
 {
 	$check = getClientData();
 	if ($check) 
 	{
-		$req_json = json_decode(file_get_contents("php://input"), true);
-		wh_log("Json In Request : ".str_replace("\n"," ", print_r($req_json, true)));
-		
-		$categoryId = mysqli_real_escape_string($link,trim(isset($req_json['categoryId']))) ? mysqli_real_escape_string($link,trim($req_json['categoryId'])) :'0';
-		
-		if(empty($categoryId) || $categoryId == null)
+		$roleid = $check['loginRoleId'];
+		$res = validateApi($apiKey,$roleid);
+		if($res)
 		{
-			$cat_array = array();
-			$response['status']=false;
-			$response['message']="categoryId is mandatory.";
-			$response['data'] = $cat_array;
-		}
-		elseif(!is_numeric($categoryId))
-		{
-			$cat_array = array();
-			$response['status']=false;
-			$response['message']="Allowed only numbers in category Id parameter";
-			$response['data']=$cat_array;
-		}
-		else
-		{
-			// Get category Array By category ID
-			$query = "select * from category where id = $categoryId and status =1 and content_type_id = $content_type_id";
-			wh_log("Query - ".$query);
-			$query_rs = mysqli_query($link,$query);
-			if($query_rs)
+			$req_json = json_decode(file_get_contents("php://input"), true);
+			wh_log("Json In Request : ".str_replace("\n"," ", print_r($req_json, true)));
+			
+			$categoryId = mysqli_real_escape_string($link,trim(isset($req_json['categoryId']))) ? mysqli_real_escape_string($link,trim($req_json['categoryId'])) :'0';
+			
+			if(empty($categoryId) || $categoryId == null)
 			{
-				if(mysqli_num_rows($query_rs) > 0)
+				$cat_array = array();
+				$response['status']=false;
+				$response['message']="categoryId is mandatory.";
+				$response['data'] = $cat_array;
+			}
+			elseif(!is_numeric($categoryId))
+			{
+				$cat_array = array();
+				$response['status']=false;
+				$response['message']="Allowed only numbers in category Id parameter";
+				$response['data']=$cat_array;
+			}
+			else
+			{
+				// Get category Array By category ID
+				$query = "select * from category where id = $categoryId and status =1 and content_type_id = $content_type_id";
+				wh_log("Query - ".$query);
+				$query_rs = mysqli_query($link,$query);
+				if($query_rs)
 				{
-					while($row  = mysqli_fetch_assoc($query_rs))
-					{  
-						$cat_array = singleCategoryArray($row,$link);
-					}
-					if(!empty($cat_array))
+					if(mysqli_num_rows($query_rs) > 0)
 					{
-					$response['status']=true;
-					$response['message']="Success";
-					$response['data'] = $cat_array;	
-					} else {
-					$cat_array = array();
-					$response['status']=false;
-					$response['message']="No Data Found For This category Id ".$categoryId;
-					$response['data'] = $cat_array;	
+						while($row  = mysqli_fetch_assoc($query_rs))
+						{  
+							$cat_array = singleCategoryArray($row,$link);
+						}
+						if(!empty($cat_array))
+						{
+						$response['status']=true;
+						$response['message']="Success";
+						$response['data'] = $cat_array;	
+						} else {
+						$cat_array = array();
+						$response['status']=false;
+						$response['message']="No Data Found For This category Id ".$categoryId;
+						$response['data'] = $cat_array;	
+						}
+					}
+					else
+					{
+						$cat_array = array();
+						$response['status']=false;
+						$response['message']="No Data Found For This category Id ".$categoryId;
+						$response['data'] = $cat_array;
 					}
 				}
 				else
 				{
 					$cat_array = array();
 					$response['status']=false;
-					$response['message']="No Data Found For This category Id ".$categoryId;
+					$response['message']=mysqli_error($link);
 					$response['data'] = $cat_array;
 				}
+			
 			}
-			else
-			{
-				$cat_array = array();
-				$response['status']=false;
-				$response['message']=mysqli_error($link);
-				$response['data'] = $cat_array;
-			}
-		
+		}
+		else
+		{
+			header('HTTP/1.1 400 Bad Request', true, 400);
+			die;
 		}
 	}
 	else

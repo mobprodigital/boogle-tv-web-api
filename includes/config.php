@@ -14,15 +14,17 @@ mysqli_select_db($link,"boogletv") or die(mysqli_error()."\n");
 mysqli_select_db($link,"dev_boogletv") or die(mysqli_error()."\n"); */
 
 $imageBaseDirURL = 'C:/xampp/htdocs/boogletv/images/';
-$imageBaseURL = "http://192.168.0.8/boogletv/images";
+$imageBaseURL = "http://192.168.0.7/boogletv/images";
 
 $videoBaseDirURL = 'C:/xampp/htdocs/boogletv/videos/';
-$videoBaseURL = "http://192.168.0.8/boogletv/videos";
+$videoBaseURL = "http://192.168.0.7/boogletv/videos";
 
 $localhost_base_url = "http://localhost/boogletv/";
-$base_url = "http://192.168.0.8/boogletv/";
+$base_url = "http://192.168.0.7/boogletv/";
 
-$panel_url = 'http://192.168.0.8/boogletv/';
+$panel_url = 'http://192.168.0.7/boogletv/';
+
+
 
 /* Set authentication_key in Cookie */
 function random_num($size) {
@@ -182,6 +184,52 @@ function send_email($email,$msg,$subject)
 	}
 }
 
+//1=Owner, 2=Superadmin, 3=Admin, 4=User
+$record = array("1"=>array("DelPor1","EditPor","getPor","LisPor","NewPor","Delcl","EditCl","getCl","LisCl",
+"SetCl","setSA","DelSA","EditSA","getPorListByClId","SAById","SAList","LisCat","DelCat","DeactivateCl"),
+ "2"=>array("LisPor","getPor","DelText","DelTextCatById","EditTextCatById","EditTextById","TextById",
+ "TextCat","TextCatById","TextListByUid","SetTextCat","UplText"),
+ "4"=>array("DelText","EditTextCatById","EditTextById","TextById","TextCat","TextCatById",
+ "TextListByUid","SetTextCat","UplText"));
 
+function validateApi($apiKey,$roleId)
+{
+    $new = array_keys($GLOBALS['record']);
+    //print_r($new);
+
+    foreach($new as $val)
+    {
+       //echo $val;
+       if($val == $roleId)
+       {
+          //echo "role match";
+          //echo "<br>";
+          $new1 =  $GLOBALS['record'][$roleId];
+          //print_r($new1);
+          foreach($new1 as $value)
+          {
+            //echo $value;
+            if($value == $apiKey)
+            {
+                //echo "key match";
+                $status = true;
+                break;
+            }
+            else
+            {
+               // echo "key not match";
+                $status = false;
+            }
+          }
+          break;
+       }
+       else
+       {
+           //echo "role not match";
+           $status = false;
+       }
+    } 
+    return $status;
+}
 
 ?>

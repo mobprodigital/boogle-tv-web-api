@@ -6,16 +6,19 @@ $response = array();
 if($_SERVER["REQUEST_METHOD"] == "POST")
 {
 	$check = getClientData();
+	//print_r($check);
 	if ($check) 
 	{
 		$client_id = $check['loginClientId'];
+		$uploaded_By = $check['loginUserId'];
 		$req_json = json_decode(file_get_contents("php://input"), true);
 		wh_log("Json In Request : ".str_replace("\n"," ", print_r($req_json, true)));
 		
 		// For update case
 		$videoId = mysqli_real_escape_string($link,trim(isset($req_json['videoId']))) ? mysqli_real_escape_string($link,trim($req_json['videoId'])) :'';
 		
-		$clientId = mysqli_real_escape_string($link,trim(isset($client_id))) ? mysqli_real_escape_string($link,trim($client_id)) :'0';
+		$clientId = mysqli_real_escape_string($link,trim(isset($client_id))) ? mysqli_real_escape_string($link,trim($client_id)) :' ';
+		$uploadedBy = mysqli_real_escape_string($link,trim(isset($uploaded_By))) ? mysqli_real_escape_string($link,trim($uploaded_By)) :'0';
 		$title = mysqli_real_escape_string($link,trim(isset($req_json['title']))) ? mysqli_real_escape_string($link,trim($req_json['title'])) :'';
 		$language = mysqli_real_escape_string($link,trim(isset($req_json['language']))) ? mysqli_real_escape_string($link,trim($req_json['language'])) :'';
 		$description = mysqli_real_escape_string($link,trim(isset($req_json['description']))) ? mysqli_real_escape_string($link,trim($req_json['description'])) :'';
@@ -38,12 +41,25 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 		
 		if(! empty($req_json['categoryId'])) { $cat_array_status = check_array_values($req_json['categoryId']); }
 		if(! empty($req_json['portalId'])) { $portal_array_status = check_array_values($req_json['portalId']); }
-		wh_log("clientID - ".$clientId." | Title - ".$title." | Language - ".$language." | Description -".$description." | minAgeReq -".$minAgeReq." | broadcasterName -".$broadcasterName." | type -".$type." | currentAvailability -".$currentAvailability." | platform -".$platform." | adult -".$adult." | downloadRights -".$downloadRights." | internationalRights -".$internationalRights." | genere -".$genere." | director -".$director." | producer -".$producer." | writer -".$writer." | musicDirector -".$musicDirector." | productionHouse -".$productionHouse." | actor -".$actor." | singer -".$singer);
+		wh_log("clientID - ".$clientId." | Uploaded By - ".$uploadedBy." | Title - ".$title." | Language - ".$language." | Description -".$description." | minAgeReq -".$minAgeReq." | broadcasterName -".$broadcasterName." | type -".$type." | currentAvailability -".$currentAvailability." | platform -".$platform." | adult -".$adult." | downloadRights -".$downloadRights." | internationalRights -".$internationalRights." | genere -".$genere." | director -".$director." | producer -".$producer." | writer -".$writer." | musicDirector -".$musicDirector." | productionHouse -".$productionHouse." | actor -".$actor." | singer -".$singer);
 		
 		if(empty($clientId) || $clientId == null)
 		{
 			$response['status']=false;
 			$response['message']="clientId is mandatory.";
+			$response['data']="";
+		}
+		elseif(!is_numeric($clientId))
+		{
+			$arr = array();
+			$response['status']=false;
+			$response['message']="Allowed only numbers in clientId parameter";
+			$response['data']=$arr;
+		}
+		elseif(empty($uploadedBy) || $uploadedBy == null)
+		{
+			$response['status']=false;
+			$response['message']="Uploaded By is mandatory.";
 			$response['data']="";
 		}
 		elseif(empty($title) || $title == null)
@@ -130,10 +146,10 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 			if($videoId == null || $videoId == 0)
 			{
 				//echo "Insert case";
-				$insert_data = "insert into content_metadata (`cat_id`,`client_id`,`portal_ids`,`title`,`content_type`,`tags`, `status`,
+				$insert_data = "insert into content_metadata (`cat_id`,`client_id`,`uploaded_by`,`portal_ids`,`title`,`content_type`,`tags`, `status`,
 				`insertion_time`,`language`, `description`,`min_age_req`,`broadcaster_name`,`type`,`content_availability`,`platform`, `adult`,`download_rights`,
 				`intrernational_rights`,`country`,`genre`,`director`,`producer`,`writer`, `music_director`,`production_house`,`actors`,`singers`) values ('$catid',
-				'$clientId','$pids','$title','video','$tags','1', NOW(),'$language','$description','$minAgeReq','$broadcasterName','$type','$currentAvailability',
+				'$clientId','$uploadedBy','$pids','$title','video','$tags','1', NOW(),'$language','$description','$minAgeReq','$broadcasterName','$type','$currentAvailability',
 				'$platform', '$adult','$downloadRights','$internationalRights','$country','$genere','$director','$producer','$writer', '$musicDirector',
 				'$productionHouse','$actor','$singer')";
 				$insert_data_rs = mysqli_query($link,$insert_data);
@@ -160,7 +176,7 @@ if($_SERVER["REQUEST_METHOD"] == "POST")
 				wh_log("Check Query ".$check_query." count rows - ".mysqli_num_rows($check_query_rs));
 				if(mysqli_num_rows($check_query_rs) > 0)
 				{
-					$insert_data = "update content_metadata set cat_id='$catid',client_id='$clientId',portal_ids='$pids',title='$title',tags='$tags',
+					$insert_data = "update content_metadata set cat_id='$catid',client_id='$clientId',uploaded_by='$uploadedBy',portal_ids='$pids',title='$title',tags='$tags',
 					language='$language',description='$description',min_age_req='$minAgeReq',broadcaster_name='$broadcasterName',type='$type',
 					content_availability='$currentAvailability',platform='$platform', adult='$adult',download_rights='$downloadRights',
 					intrernational_rights='$internationalRights',country='$country',genre='$genere',director='$director',producer='$producer',writer='$writer', 
